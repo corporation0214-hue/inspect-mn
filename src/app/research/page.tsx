@@ -1,60 +1,70 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ModuleCard from "@/components/dashboard/ModuleCard";
 import SimpleTable from "@/components/dashboard/SimpleTable";
-import { procedures } from "@/lib/constants/SampleData";
+import { createClient } from "@/lib/supabase/server";
 
-export default function CompliancePage() {
+export default async function ResearchPage() {
+  const supabase = await createClient();
+
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("*")
+    .eq("code", "BAYANGOL")
+    .maybeSingle();
+
+  const orgId = org?.id;
+
+  const { data: projectsData } = await supabase
+    .from("research_projects")
+    .select("*")
+    .eq("organization_id", orgId);
+
+  const projects = projectsData ?? [];
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Compliance Center</h1>
-          <p className="text-slate-500">Хууль, дүрэм, журам, стандарт, АБТ, процессын хэрэгжилт</p>
+          <h1 className="text-3xl font-bold">Research & Development</h1>
+          <p className="text-slate-500">
+            Судалгаа, туршилт, инноваци, цахим шилжилтийн төслүүд
+          </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
-          <ModuleCard title="Нийт журам" description="Байгууллагын сан">
-            <div className="text-3xl font-bold">152</div>
+          <ModuleCard title="Нийт төсөл" description="R&D portfolio">
+            <div className="text-3xl font-bold">{projects.length}</div>
           </ModuleCard>
-          <ModuleCard title="Хэрэгжилт" description="Дундаж үнэлгээ">
-            <div className="text-3xl font-bold">87%</div>
+
+          <ModuleCard title="Pilot" description="Туршилтын шат">
+            <div className="text-3xl font-bold">
+              {projects.filter((x) => x.stage === "pilot").length}
+            </div>
           </ModuleCard>
-          <ModuleCard title="Шинэ журам" description="Танилцуулах шаардлагатай">
-            <div className="text-3xl font-bold">12</div>
+
+          <ModuleCard title="Development" description="Хөгжүүлэлт">
+            <div className="text-3xl font-bold">
+              {projects.filter((x) => x.stage === "development").length}
+            </div>
           </ModuleCard>
-          <ModuleCard title="Өндөр эрсдэлтэй" description="Анхаарах журам">
-            <div className="text-3xl font-bold">7</div>
+
+          <ModuleCard title="Idea" description="Санааны шат">
+            <div className="text-3xl font-bold">
+              {projects.filter((x) => x.stage === "idea").length}
+            </div>
           </ModuleCard>
         </div>
 
-        <ModuleCard title="Журмын хэрэгжилтийн үнэлгээ" description="Зүйл заалт, ажлын байр, RACI, суурь шалтгаан">
+        <ModuleCard title="Research Portfolio" description="Supabase-аас уншиж байна">
           <SimpleTable
-            columns={["Журам", "Хариуцагч", "Биелэлт", "Эрсдэл"]}
-            rows={procedures.map((x) => ({
-              Журам: x.title,
-              Хариуцагч: x.owner,
-              Биелэлт: x.score,
-              Эрсдэл: x.risk,
+            columns={["Төсөл", "Шат", "Явц"]}
+            rows={projects.map((x) => ({
+              Төсөл: x.title,
+              Шат: x.stage,
+              Явц: `${x.progress}%`,
             }))}
           />
         </ModuleCard>
-
-        <div className="grid gap-4 xl:grid-cols-2">
-          <ModuleCard title="Clause Mapping" description="Зүйл заалт бүрийг ажлын байртай холбох">
-            <div className="rounded-xl border p-4">
-              <p className="font-semibold">4.1 Өдөр тутмын үзлэг хийх</p>
-              <p className="mt-2 text-sm text-slate-500">R: Мастер, A: Албаны дарга, C: Инженер, I: Оператор</p>
-            </div>
-          </ModuleCard>
-
-          <ModuleCard title="Root Cause Engine" description="Суурь шалтгааны ангилал">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              {["Мэдлэг дутмаг", "Хяналт сул", "Процесс тодорхойгүй", "Нөөц хүрэлцээгүй"].map((x) => (
-                <div key={x} className="rounded-xl border p-3">{x}</div>
-              ))}
-            </div>
-          </ModuleCard>
-        </div>
       </div>
     </DashboardLayout>
   );

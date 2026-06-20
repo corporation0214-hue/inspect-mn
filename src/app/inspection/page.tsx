@@ -1,9 +1,14 @@
+"use client";
+import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ModuleCard from "@/components/dashboard/ModuleCard";
 import SimpleTable from "@/components/dashboard/SimpleTable";
 import { inspections } from "@/lib/constants/SampleData";
+import CreateInspectionModal from "@/components/inspection/CreateInspectionModal";
 
 export default function InspectionPage() {
+  const [showModal, setShowModal] = useState(false);
+  
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -12,7 +17,21 @@ export default function InspectionPage() {
             <h1 className="text-3xl font-bold">Inspection Center</h1>
             <p className="text-slate-500">Төлөвлөгөөт, төлөвлөгөөт бус, хамтарсан хяналт шалгалт</p>
           </div>
-          <button className="rounded-xl bg-blue-600 px-5 py-3 text-white">+ Шинэ ХШ</button>
+          <button 
+          onClick={() => setShowModal(true)}
+          className="rounded-xl bg-blue-600 px-5 py-3 text-white">
+                        + Шинэ ХШ
+          </button>
+
+          {
+            showModal && (
+              <CreateInspectionModal
+                organizationId="237a5e87-563a-47d8-9a85-48ac087b22a3"
+                onClose={() => setShowModal(false)}
+              />
+            )
+          }
+
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">

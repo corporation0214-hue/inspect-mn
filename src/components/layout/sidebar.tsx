@@ -1,43 +1,96 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
-export default function sidebar() {
+const menus = [
+  { href: "/dashboard", label: "Dashboard", icon: "D" },
+  { href: "/inspection", label: "Inspection Center", icon: "I" },
+  { href: "/compliance", label: "Compliance Center", icon: "C" },
+  { href: "/research", label: "Research & Development", icon: "R" },
+  { href: "/voice", label: "Employee Voice", icon: "V" },
+  { href: "/ai", label: "AI Center", icon: "AI" },
+  { href: "/settings", label: "Settings", icon: "S" },
+];
+
+type Props = {
+  open: boolean;
+  mobileOpen: boolean;
+  onToggle: () => void;
+  onCloseMobile: () => void;
+};
+
+export default function Sidebar({
+  open,
+  mobileOpen,
+  onToggle,
+  onCloseMobile,
+}: Props) {
+  const [hovered, setHovered] = useState(false);
+
+  const expanded = mobileOpen || open || hovered;
+  const desktopWidth = open ? "md:w-72" : "md:w-20";
+
   return (
-    <aside className="w-72 bg-slate-900 text-white">
-      <div className="p-5 text-xl font-bold">
-        INSPECT.MN
-      </div>
+    <>
+      {mobileOpen && (
+        <button
+          onClick={onCloseMobile}
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+        />
+      )}
 
-      <nav className="space-y-1 px-3">
+      <aside className={`hidden shrink-0 md:block ${desktopWidth}`} />
 
-        <Link href="/dashboard" className="block p-3 rounded hover:bg-slate-800">
-          Dashboard
-        </Link>
+      <aside
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        className={`
+          fixed left-0 top-0 z-40 h-screen bg-slate-950 text-white transition-all duration-300
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          ${expanded ? "w-72" : "w-20"}
+        `}
+      >
+        <div className="flex items-center justify-between border-b border-slate-800 p-4">
+          <div>
+            <h1 className="text-xl font-bold">{expanded ? "INSPECT.MN" : "IN"}</h1>
+            {expanded && (
+              <p className="mt-1 text-xs text-slate-400">Smart Control System</p>
+            )}
+          </div>
 
-        <Link href="/inspection" className="block p-3 rounded hover:bg-slate-800">
-          Inspection Center
-        </Link>
+          <button
+            onClick={onToggle}
+            className="hidden rounded-lg bg-slate-800 px-2 py-1 text-sm md:block"
+          >
+            {open ? "‹" : "›"}
+          </button>
 
-        <Link href="/compliance" className="block p-3 rounded hover:bg-slate-800">
-          Compliance Center
-        </Link>
+          <button
+            onClick={onCloseMobile}
+            className="rounded-lg bg-slate-800 px-2 py-1 text-sm md:hidden"
+          >
+            ×
+          </button>
+        </div>
 
-        <Link href="/research" className="block p-3 rounded hover:bg-slate-800">
-          Research & Development
-        </Link>
+        <nav className="space-y-1 p-3">
+          {menus.map((menu) => (
+            <Link
+              key={menu.href}
+              href={menu.href}
+              onClick={onCloseMobile}
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-slate-200 hover:bg-slate-800"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-xs font-bold">
+                {menu.icon}
+              </span>
 
-        <Link href="/voice" className="block p-3 rounded hover:bg-slate-800">
-          Employee Voice
-        </Link>
-
-        <Link href="/ai" className="block p-3 rounded hover:bg-slate-800">
-          AI Center
-        </Link>
-
-        <Link href="/settings" className="block p-3 rounded hover:bg-slate-800">
-          Settings
-        </Link>
-
-      </nav>
-    </aside>
+              {expanded && <span className="whitespace-nowrap">{menu.label}</span>}
+            </Link>
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 }

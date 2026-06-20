@@ -118,7 +118,7 @@ export default function InspectionClient({
             ))}
           </div>
           
-          <div className="max-h-[420px] overflow-y-auto rounded-xl border">
+          
           <div className="max-h-[420px] overflow-y-auto rounded-xl border">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-slate-100">
@@ -150,7 +150,7 @@ export default function InspectionClient({
               </tbody>
             </table>
           </div>
-        </div>
+        
         </ModuleCard>
 
         <div className="grid gap-4 xl:grid-cols-2">

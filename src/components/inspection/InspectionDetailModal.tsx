@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import CreateFindingModal from "@/components/findings/CreateFindingModal";
 
 type Inspection = {
   id: string;
@@ -17,6 +18,7 @@ type Inspection = {
   result_summary?: string;
   result_score?: number;
   result_status?: string;
+  organization_id?: string;
 };
 
 export default function InspectionDetailModal({
@@ -40,6 +42,38 @@ export default function InspectionDetailModal({
   const [resultSummary, setResultSummary] = useState(inspection.result_summary || "");
   const [resultScore, setResultScore] = useState(String(inspection.result_score ?? ""));
   const [resultStatus, setResultStatus] = useState(inspection.result_status || "not_entered");
+  
+  type Finding = {
+    id: string;
+    title: string;
+    description?: string;
+    severity?: string;
+    status?: string;
+    owner?: string;
+    due_date?: string;
+    };
+
+    const [findings, setFindings] = useState<Finding[]>([]);
+    const [showFindingModal, setShowFindingModal] = useState(false);
+
+    async function loadFindings() {
+    const { data, error } = await supabase
+        .from("findings")
+        .select("*")
+        .eq("inspection_id", inspection.id)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    setFindings(data ?? []);
+    }
+
+    useEffect(() => {
+    loadFindings();
+    }, [inspection.id]);
 
   async function handleUpdate() {
     const { error } = await supabase
@@ -169,6 +203,48 @@ export default function InspectionDetailModal({
             </button>
           </div>
         </div>
+
+        <div className="mt-6 rounded-2xl border p-4">
+            <div className="mb-3 flex items-center justify-between">
+                <h3 className="font-bold">Зөрчилүүд</h3>
+
+                <button
+                onClick={() => setShowFindingModal(true)}
+                className="rounded-xl bg-red-600 px-4 py-2 text-white"
+                >
+                + Зөрчил нэмэх
+                </button>
+            </div>
+
+            <div className="space-y-2">
+                {findings.length === 0 && (
+                <p className="text-sm text-slate-500">Одоогоор зөрчил бүртгэгдээгүй байна.</p>
+                )}
+
+                {findings.map((f) => (
+                <div key={f.id} className="rounded-xl border p-3">
+                    <div className="font-semibold">{f.title}</div>
+                    <div className="text-sm text-slate-500">
+                    Эрсдэл: {f.severity || "-"} · Төлөв: {f.status || "-"}
+                    </div>
+                </div>
+                ))}
+            </div>
+            </div>
+
+            {showFindingModal && (
+            <CreateFindingModal
+                inspectionId={inspection.id}
+                organizationId={(inspection as any).organization_id}
+                onClose={() => setShowFindingModal(false)}
+                onSaved={() => {
+                setShowFindingModal(false);
+                loadFindings();
+                router.refresh();
+                }}
+            />
+            )}
+
       </div>
     </div>
   );

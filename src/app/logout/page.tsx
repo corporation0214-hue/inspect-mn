@@ -2,14 +2,20 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LogoutPage() {
   const router = useRouter();
 
   useEffect(() => {
-    localStorage.removeItem("inspect_demo_auth");
-    localStorage.removeItem("inspect_user");
-    router.push("/");
+    async function logout() {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push("/");
+      router.refresh();
+    }
+
+    logout();
   }, [router]);
 
   return (

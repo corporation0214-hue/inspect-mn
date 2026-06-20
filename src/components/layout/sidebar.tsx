@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function Sidebar() {
+export default function sidebar() {
   return (
     <aside className="w-72 bg-slate-900 text-white">
       <div className="p-5 text-xl font-bold">

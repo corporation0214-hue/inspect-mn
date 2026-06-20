@@ -20,6 +20,7 @@ export default function CreateFindingModal({
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("ХАБЭА");
   const [severity, setSeverity] = useState("medium");
   const [owner, setOwner] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -41,6 +42,7 @@ export default function CreateFindingModal({
       organization_id: organizationId,
       title,
       description,
+      category,
       severity,
       owner,
       due_date: dueDate || null,
@@ -57,7 +59,7 @@ export default function CreateFindingModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-xl font-bold">Шинэ зөрчил бүртгэх</h2>
@@ -81,6 +83,21 @@ export default function CreateFindingModal({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+
+          <select
+            className="w-full rounded-xl border px-4 py-3"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="ХАБЭА">ХАБЭА</option>
+            <option value="Байгаль орчин">Байгаль орчин</option>
+            <option value="Баримт бичиг">Баримт бичиг</option>
+            <option value="Зам талбай">Зам талбай</option>
+            <option value="Тоног төхөөрөмж">Тоног төхөөрөмж</option>
+            <option value="Үйлдвэрлэл">Үйлдвэрлэл</option>
+            <option value="Чанар">Чанар</option>
+            <option value="Бусад">Бусад</option>
+          </select>
 
           <select
             className="w-full rounded-xl border px-4 py-3"

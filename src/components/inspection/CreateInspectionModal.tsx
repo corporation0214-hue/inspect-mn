@@ -97,6 +97,7 @@ export default function CreateInspectionModal({
             onChange={(e) => setType(e.target.value)}
           >
             <option value="government">Төрийн ХШ</option>
+            <option value="internal">Дотоод ХШ</option>
             <option value="night">Шөнийн ХШ</option>
             <option value="joint">Хамтарсан ХШ</option>
             <option value="document">Баримт бичгийн ХШ</option>

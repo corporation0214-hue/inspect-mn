@@ -3,12 +3,14 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ModuleCard from "@/components/dashboard/ModuleCard";
-import SimpleTable from "@/components/dashboard/SimpleTable";
 import CreateInspectionModal from "@/components/inspection/CreateInspectionModal";
 import InspectionDetailModal from "@/components/inspection/InspectionDetailModal";
+import InspectionKpiDetailModal from "@/components/inspection/InspectionKpiDetailModal";
+import PlanEditModal from "@/components/inspection/PlanEditModal";
 
 type Inspection = {
   id: string;
+  organization_id?: string;
   title: string;
   type: string;
   category: string;
@@ -22,30 +24,86 @@ type Inspection = {
   result_status?: string;
 };
 
+type Finding = {
+  id: string;
+  inspection_id?: string;
+  title: string;
+  description?: string;
+  category?: string;
+  severity?: string;
+  status?: string;
+  owner?: string;
+  due_date?: string;
+};
+
+type Plan = {
+  id: string;
+  inspection_type: string;
+  planned_count: number;
+  period: string;
+};
+
+const inspectionTypes = [
+  { key: "government", label: "Төрийн ХШ" },
+  { key: "internal", label: "Дотоод ХШ" },
+  { key: "night", label: "Шөнийн ХШ" },
+  { key: "joint", label: "Хамтарсан ХШ" },
+  { key: "document", label: "Баримт бичгийн ХШ" },
+];
+
+function topCategories(findings: Finding[]) {
+  const counts: Record<string, number> = {};
+
+  findings.forEach((f) => {
+    const category = f.category || "Бусад";
+    counts[category] = (counts[category] || 0) + 1;
+  });
+
+  return Object.entries(counts)
+    .map(([category, count]) => ({ category, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+}
+
 export default function InspectionClient({
   organizationId,
   inspections,
+  findings,
+  plans,
 }: {
   organizationId: string;
   inspections: Inspection[];
+  findings: Finding[];
+  plans: Plan[];
 }) {
   const [showModal, setShowModal] = useState(false);
-  const [filter, setFilter] = useState("all");
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
-  const filteredInspections =
-  filter === "all"
-    ? inspections
-    : inspections.filter((x) => x.type === filter || x.category === filter);  
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [filter, setFilter] = useState("all");
+  const [planEditType, setPlanEditType] = useState<string | null>(null);
 
-  const governmentCount = inspections.filter((x) => x.type === "government").length;
-  const nightCount = inspections.filter((x) => x.type === "night").length;
-  const jointCount = inspections.filter((x) => x.type === "joint").length;
-  const unplannedCount = inspections.filter((x) => x.category === "unplanned").length;
+  const filteredInspections =
+    filter === "all"
+      ? inspections
+      : inspections.filter((x) => x.type === filter || x.category === filter);
+
+  function getPlanCount(type: string) {
+    return plans.find((p) => p.inspection_type === type)?.planned_count ?? 0;
+  }
+
+  function getInspectionsByType(type: string) {
+    return inspections.filter((x) => x.type === type);
+  }
+
+  function getFindingsByType(type: string) {
+    const typeInspectionIds = getInspectionsByType(type).map((x) => x.id);
+    return findings.filter((f) => typeInspectionIds.includes(f.inspection_id || ""));
+  }
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-3xl font-bold">Inspection Center</h1>
             <p className="text-slate-500">
@@ -66,7 +124,6 @@ export default function InspectionClient({
             organizationId={organizationId}
             onClose={() => setShowModal(false)}
           />
-          
         )}
 
         {selectedInspection && (
@@ -76,28 +133,120 @@ export default function InspectionClient({
           />
         )}
 
-        <div className="grid gap-4 md:grid-cols-4">
-          {[
-            { title: "Төрийн ХШ", value: governmentCount },
-            { title: "Шөнийн ХШ", value: nightCount },
-            { title: "Хамтарсан ХШ", value: jointCount },
-            { title: "Төлөвлөгөөт бус", value: unplannedCount },
-          ].map((x) => (
-            <ModuleCard key={x.title} title={x.title} description="Хяналтын төрөл">
-              <div className="text-3xl font-bold text-slate-900">{x.value}</div>
-              <div className="mt-2 h-2 rounded bg-slate-100">
-                <div className="h-2 w-2/3 rounded bg-blue-600" />
+        {selectedType && (
+          <InspectionKpiDetailModal
+            type={selectedType}
+            label={inspectionTypes.find((x) => x.key === selectedType)?.label || selectedType}
+            plannedCount={getPlanCount(selectedType)}
+            inspections={getInspectionsByType(selectedType)}
+            findings={getFindingsByType(selectedType)}
+            onClose={() => setSelectedType(null)}
+          />
+        )}
+
+        {planEditType && (
+          <PlanEditModal
+            organizationId={organizationId}
+            inspectionType={planEditType}
+            label={inspectionTypes.find((x) => x.key === planEditType)?.label || planEditType}
+            currentPlannedCount={getPlanCount(planEditType)}
+            onClose={() => setPlanEditType(null)}
+          />
+        )}
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {inspectionTypes.map((item) => {
+            const typeInspections = getInspectionsByType(item.key);
+            const typeFindings = getFindingsByType(item.key);
+            const planned = getPlanCount(item.key);
+            const done = typeInspections.length;
+            const percent = planned > 0 ? Math.round((done / planned) * 100) : 0;
+            const top3 = topCategories(typeFindings);
+
+            return (
+              <div key={item.key} className="rounded-2xl border bg-white p-5 shadow-sm">
+                <div className="mb-3 flex items-start justify-between">
+                  <div>
+                    <h3 className="font-bold text-slate-950">{item.label}</h3>
+                    <p className="text-sm text-slate-500">Төлөвлөгөө / гүйцэтгэл</p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelectedType(item.key)}
+                      className="rounded-lg border px-2 py-1 text-sm hover:bg-slate-100"
+                      title="Дэлгэрэнгүй"
+                    >
+                      ⛶
+                    </button>
+
+                    <button
+                      onClick={() => setPlanEditType(item.key)}
+                      className="rounded-lg border px-2 py-1 text-sm hover:bg-slate-100"
+                      title="Төлөвлөгөө тохируулах"
+                    >
+                      ⚙
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-xl bg-slate-50 p-2">
+                    <p className="text-xs text-slate-500">Төлөв.</p>
+                    <p className="font-bold">{planned}</p>
+                  </div>
+                  <div className="rounded-xl bg-slate-50 p-2">
+                    <p className="text-xs text-slate-500">Хийгд.</p>
+                    <p className="font-bold">{done}</p>
+                  </div>
+                  <div className="rounded-xl bg-slate-50 p-2">
+                    <p className="text-xs text-slate-500">Хувь</p>
+                    <p className="font-bold">{percent}%</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 h-2 rounded-full bg-slate-100">
+                  <div
+                    className={`h-2 rounded-full ${
+                      percent >= 80
+                        ? "bg-green-600"
+                        : percent >= 40
+                        ? "bg-yellow-500"
+                        : "bg-red-500"
+                    }`}
+                    style={{ width: `${Math.min(percent, 100)}%` }}
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <p className="mb-2 text-xs font-semibold uppercase text-slate-500">
+                    TOP 3 зөрчлийн ангилал
+                  </p>
+
+                  <div className="space-y-1 text-sm">
+                    {top3.length === 0 && (
+                      <p className="text-slate-400">Зөрчил бүртгэгдээгүй</p>
+                    )}
+
+                    {top3.map((x) => (
+                      <div key={x.category} className="flex justify-between">
+                        <span className="truncate">{x.category}</span>
+                        <span className="font-bold">{x.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </ModuleCard>
-          ))}
+            );
+          })}
         </div>
 
         <ModuleCard title="Хяналт шалгалтын жагсаалт" description="Supabase-аас уншиж байна">
-          
           <div className="mb-4 flex flex-wrap gap-2">
             {[
               { label: "Бүгд", value: "all" },
               { label: "Төрийн", value: "government" },
+              { label: "Дотоод", value: "internal" },
               { label: "Шөнийн", value: "night" },
               { label: "Хамтарсан", value: "joint" },
               { label: "Баримт бичиг", value: "document" },
@@ -117,17 +266,18 @@ export default function InspectionClient({
               </button>
             ))}
           </div>
-          
-          
-          <div className="max-h-[420px] overflow-y-auto rounded-xl border">
+
+          <div className="rounded-xl border">
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-slate-100">
+              <thead className="bg-slate-100">
                 <tr>
-                  {["Нэр", "Төрөл", "Төлөв", "Ангилал", "Огноо", "Бүртгэсэн", "Гүйцэтгэсэн"].map((col) => (
-                    <th key={col} className="border px-4 py-3 text-left font-medium">
-                      {col}
-                    </th>
-                  ))}
+                  {["Нэр", "Төрөл", "Төлөв", "Ангилал", "Огноо", "Бүртгэсэн", "Гүйцэтгэсэн"].map(
+                    (col) => (
+                      <th key={col} className="border px-4 py-3 text-left font-medium">
+                        {col}
+                      </th>
+                    )
+                  )}
                 </tr>
               </thead>
 
@@ -150,26 +300,7 @@ export default function InspectionClient({
               </tbody>
             </table>
           </div>
-        
         </ModuleCard>
-
-        <div className="grid gap-4 xl:grid-cols-2">
-          <ModuleCard title="Checklist Builder" description="Хяналтын хуудас үүсгэх">
-            <div className="space-y-3">
-              {["Yes/No", "Score", "Text", "Photo Required", "GPS", "File Upload"].map((x) => (
-                <div key={x} className="rounded-xl border p-3">{x}</div>
-              ))}
-            </div>
-          </ModuleCard>
-
-          <ModuleCard title="CAPA" description="Зөрчил, арга хэмжээ, follow-up">
-            <div className="space-y-3 text-sm">
-              <div className="rounded-xl border p-4">Зөрчил бүртгэх</div>
-              <div className="rounded-xl border p-4">Арга хэмжээ оноох</div>
-              <div className="rounded-xl border p-4">Дахин шалгах</div>
-            </div>
-          </ModuleCard>
-        </div>
       </div>
     </DashboardLayout>
   );

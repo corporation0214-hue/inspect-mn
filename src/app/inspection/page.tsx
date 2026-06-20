@@ -18,10 +18,24 @@ export default async function InspectionPage() {
     .eq("organization_id", orgId)
     .order("created_at", { ascending: false });
 
+  const { data: findingsData } = await supabase
+    .from("findings")
+    .select("*")
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false });
+
+  const { data: plansData } = await supabase
+    .from("inspection_plans")
+    .select("*")
+    .eq("organization_id", orgId)
+    .eq("period", "2026");
+
   return (
     <InspectionClient
       organizationId={orgId}
       inspections={inspectionsData ?? []}
+      findings={findingsData ?? []}
+      plans={plansData ?? []}
     />
   );
 }

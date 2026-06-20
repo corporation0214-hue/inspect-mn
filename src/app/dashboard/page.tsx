@@ -3,6 +3,7 @@ import KpiCard from "@/components/dashboard/KpiCard";
 import ModuleCard from "@/components/dashboard/ModuleCard";
 import SimpleTable from "@/components/dashboard/SimpleTable";
 import { createClient } from "@/lib/supabase/server";
+import InspectionAnalytics from "@/components/dashboard/InspectionAnalytics";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -119,15 +120,13 @@ export default async function DashboardPage() {
             </div>
           </ModuleCard>
 
-          <ModuleCard title="Хяналт шалгалтын явц" description="Supabase-аас уншив">
-            <SimpleTable
-              columns={["Нэр", "Төрөл", "Төлөв", "Ангилал"]}
-              rows={inspections.map((x) => ({
-                Нэр: x.title,
-                Төрөл: x.type,
-                Төлөв: x.status,
-                Ангилал: x.category,
-              }))}
+          <ModuleCard
+            title="Хяналт шалгалтын аналитик"
+            description="Төрөл, төлөвлөгөө, зөрчлийн харьцуулалт"
+          >
+            <InspectionAnalytics
+              inspections={inspections}
+              findings={findings}
             />
           </ModuleCard>
 

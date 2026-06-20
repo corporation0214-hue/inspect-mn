@@ -1,80 +1,27 @@
-"use client";
-import { useState } from "react";
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import ModuleCard from "@/components/dashboard/ModuleCard";
-import SimpleTable from "@/components/dashboard/SimpleTable";
-import { inspections } from "@/lib/constants/SampleData";
-import CreateInspectionModal from "@/components/inspection/CreateInspectionModal";
+import { createClient } from "@/lib/supabase/server";
+import InspectionClient from "./InspectionClient";
 
-export default function InspectionPage() {
-  const [showModal, setShowModal] = useState(false);
-  
+export default async function InspectionPage() {
+  const supabase = await createClient();
+
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("*")
+    .eq("code", "BAYANGOL")
+    .maybeSingle();
+
+  const orgId = org?.id ?? "";
+
+  const { data: inspectionsData } = await supabase
+    .from("inspections")
+    .select("*")
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false });
+
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Inspection Center</h1>
-            <p className="text-slate-500">Төлөвлөгөөт, төлөвлөгөөт бус, хамтарсан хяналт шалгалт</p>
-          </div>
-          <button 
-          onClick={() => setShowModal(true)}
-          className="rounded-xl bg-blue-600 px-5 py-3 text-white">
-                        + Шинэ ХШ
-          </button>
-
-          {
-            showModal && (
-              <CreateInspectionModal
-                organizationId="237a5e87-563a-47d8-9a85-48ac087b22a3"
-                onClose={() => setShowModal(false)}
-              />
-            )
-          }
-
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-4">
-          {["Төрийн ХШ", "Шөнийн ХШ", "Хамтарсан ХШ", "Төлөвлөгөөт бус"].map((x) => (
-            <ModuleCard key={x} title={x} description="Хяналтын төрөл">
-              <div className="text-3xl font-bold text-slate-900">12</div>
-              <div className="mt-2 h-2 rounded bg-slate-100">
-                <div className="h-2 w-2/3 rounded bg-blue-600" />
-              </div>
-            </ModuleCard>
-          ))}
-        </div>
-
-        <ModuleCard title="Хяналт шалгалтын жагсаалт" description="Төлөвлөгөөтэй харьцуулсан гүйцэтгэл">
-          <SimpleTable
-            columns={["Нэр", "Төрөл", "Төлөв", "Хувь"]}
-            rows={inspections.map((x) => ({
-              Нэр: x.name,
-              Төрөл: x.type,
-              Төлөв: x.status,
-              Хувь: x.progress,
-            }))}
-          />
-        </ModuleCard>
-
-        <div className="grid gap-4 xl:grid-cols-2">
-          <ModuleCard title="Checklist Builder" description="Хяналтын хуудас үүсгэх">
-            <div className="space-y-3">
-              {["Yes/No", "Score", "Text", "Photo Required", "GPS", "File Upload"].map((x) => (
-                <div key={x} className="rounded-xl border p-3">{x}</div>
-              ))}
-            </div>
-          </ModuleCard>
-
-          <ModuleCard title="CAPA" description="Зөрчил, арга хэмжээ, follow-up">
-            <div className="space-y-3 text-sm">
-              <div className="rounded-xl border p-4">Зөрчил бүртгэх</div>
-              <div className="rounded-xl border p-4">Арга хэмжээ оноох</div>
-              <div className="rounded-xl border p-4">Дахин шалгах</div>
-            </div>
-          </ModuleCard>
-        </div>
-      </div>
-    </DashboardLayout>
+    <InspectionClient
+      organizationId={orgId}
+      inspections={inspectionsData ?? []}
+    />
   );
 }

@@ -12,7 +12,7 @@ const menus = [
   { href: "/voice", label: "Employee Voice", icon: "V" },
   { href: "/ai", label: "AI Center", icon: "AI" },
   { href: "/settings", label: "Settings", icon: "S" },
-  
+  { label: "Admin Center", href: "/admin/users", icon: "A"},
 ];
 
 type Props = {

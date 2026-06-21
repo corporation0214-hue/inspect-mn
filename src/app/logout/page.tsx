@@ -13,7 +13,7 @@ export default function LogoutPage() {
 
       await supabase.auth.signOut({ scope: "local" });
 
-      router.replace("/login");
+      router.replace("/");
       router.refresh();
     };
 

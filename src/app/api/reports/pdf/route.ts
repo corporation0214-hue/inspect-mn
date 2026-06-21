@@ -24,10 +24,10 @@ export async function POST(request: NextRequest) {
 
       browser = await puppeteerCore.default.launch({
         args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
         executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
-      });
+        headless: true,
+      }); 
+
     } else {
       const puppeteer = await import("puppeteer");
 

@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import chromium from "@sparticuz/chromium";
-import puppeteer from "puppeteer-core";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
-  let browser;
+  let browser: any;
 
   try {
     const { html, fileName } = await request.json();
@@ -18,12 +16,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-    });
+    const isVercel = process.env.VERCEL === "1";
+
+    if (isVercel) {
+      const chromium = (await import("@sparticuz/chromium")).default;
+      const puppeteerCore = await import("puppeteer-core");
+
+      browser = await puppeteerCore.default.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+      });
+    } else {
+      const puppeteer = await import("puppeteer");
+
+      browser = await puppeteer.default.launch({
+        headless: true,
+
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-gpu",
+          "--disable-software-rasterizer",
+        ],
+      });
+    }
 
     const page = await browser.newPage();
 
@@ -43,20 +62,24 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    await browser.close();
+
     return new NextResponse(pdf, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${fileName || "inspect-report.pdf"}"`,
+        "Content-Disposition": `attachment; filename="${
+          fileName || "inspect-report.pdf"
+        }"`,
       },
     });
   } catch (error: any) {
+    if (browser) {
+      await browser.close();
+    }
+
     return NextResponse.json(
       { error: error.message || "PDF generation failed" },
       { status: 500 }
     );
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
   }
 }

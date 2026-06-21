@@ -929,32 +929,15 @@ export default function ReportsClient({
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-3">
-        <div className="rounded-xl border bg-white p-3">
-          <p className="text-xs text-slate-500">Хяналт шалгалт</p>
-          <p className="text-2xl font-bold">{inspectionCount}</p>
-        </div>
-
-        <div className="rounded-xl border bg-white p-3">
-          <p className="text-xs text-slate-500">Зөрчил</p>
-          <p className="text-3xl font-bold text-red-600">{findingCount}</p>
-        </div>
-
-        <div className="rounded-xl border bg-white p-3">
-          <p className="text-xs text-slate-500">Compliance</p>
-          <p className="text-3xl font-bold text-green-600">{complianceCount}</p>
-        </div>
-
-        <div className="rounded-xl border bg-white p-3">
-          <p className="text-xs text-slate-500">R&D</p>
-          <p className="text-3xl font-bold text-blue-600">{researchCount}</p>
-        </div>
-
-        <div className="rounded-xl border bg-white p-3">
-          <p className="text-xs text-slate-500">Employee Voice</p>
-          <p className="text-3xl font-bold text-purple-600">{voiceCount}</p>
-        </div>
-
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+        
+          <ReportSummaryCard label="Нийт ажил" value={reportRows.length} />
+          <ReportSummaryCard label="ХШ" value={inspectionCount} color="text-blue-600" />
+          <ReportSummaryCard label="Зөрчил" value={findingCount} color="text-red-600" />
+          <ReportSummaryCard label="Compliance" value={complianceCount} color="text-green-600" />
+          <ReportSummaryCard label="R&D" value={researchCount} color="text-indigo-600" />
+          <ReportSummaryCard label="Voice" value={voiceCount} color="text-purple-600" />
+       
       </div>
 
       <div className="rounded-2xl border bg-white p-5">
@@ -1017,47 +1000,47 @@ export default function ReportsClient({
             </div>
             
             <div id="report-content" className="flex-1 overflow-y-auto p-5 bg-white">
-              <div className="space-y-5">
+              <div className="space-y-3">
 
-                <div className="grid grid-cols-6 gap-2">
-  <ReportSummaryCard
-    label="Нийт ажил"
-    value={reportRows.length}
-    color="text-slate-900"
-  />
+                <div className="report-summary-grid grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+                  <ReportSummaryCard
+                    label="Нийт ажил"
+                    value={reportRows.length}
+                    color="text-slate-900"
+                  />
 
-  <ReportSummaryCard
-    label="ХШ"
-    value={inspectionCount}
-    color="text-blue-600"
-  />
+                  <ReportSummaryCard
+                    label="ХШ"
+                    value={inspectionCount}
+                    color="text-blue-600"
+                  />
 
-  <ReportSummaryCard
-    label="Зөрчил"
-    value={findingCount}
-    color="text-red-600"
-  />
+                  <ReportSummaryCard
+                    label="Зөрчил"
+                    value={findingCount}
+                    color="text-red-600"
+                  />
 
-  <ReportSummaryCard
-    label="Нээлттэй"
-    value={openFindings}
-    color="text-orange-600"
-  />
+                  <ReportSummaryCard
+                    label="Нээлттэй"
+                    value={openFindings}
+                    color="text-orange-600"
+                  />
 
-  <ReportSummaryCard
-    label="R&D"
-    value={researchCount}
-    color="text-indigo-600"
-  />
+                  <ReportSummaryCard
+                    label="R&D"
+                    value={researchCount}
+                    color="text-indigo-600"
+                  />
 
-  <ReportSummaryCard
-    label="Voice"
-    value={voiceCount}
-    color="text-purple-600"
-  />
-</div>
+                  <ReportSummaryCard
+                    label="Voice"
+                    value={voiceCount}
+                    color="text-purple-600"
+                  />
+                </div>
 
-                <div className="report-table-wrapper max-h-[460px] overflow-auto rounded-xl border">
+                <div className="report-table-wrapper mt-3 max-h-[460px] overflow-auto rounded-xl border">
                   <ReportTable rows={reportRows} />
                 </div>
               </div>

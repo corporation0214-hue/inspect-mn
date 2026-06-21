@@ -267,8 +267,8 @@ export default function InspectionClient({
             ))}
           </div>
 
-          <div className="rounded-xl border">
-            <table className="w-full text-sm">
+          <div className="max-h-[360px] overflow-auto rounded-xl border">
+           <table className="min-w-[1100px] w-full text-sm">
               <thead className="bg-slate-100">
                 <tr>
                   {["Нэр", "Төрөл", "Төлөв", "Ангилал", "Огноо", "Бүртгэсэн", "Гүйцэтгэсэн"].map(

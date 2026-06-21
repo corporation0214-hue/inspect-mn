@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import ReportSummaryCard from "@/components/reports/ReportSummaryCard";
 import ReportTable from "@/components/reports/ReportTable";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 function getDateOnly(value?: string | null) {
   if (!value) return "";
@@ -84,7 +86,7 @@ export default function ReportsClient({
   const findingCount = reportRows.filter((x) => x.module === "Finding").length;
   const complianceCount = reportRows.filter((x) => x.module === "Compliance").length;
   const researchCount = reportRows.filter((x) => x.module === "R&D").length;
-
+  
   const openFindings = reportRows.filter(
     (x) => x.module === "Finding" && x.status === "open"
   ).length;
@@ -246,6 +248,73 @@ export default function ReportsClient({
     }, 500);
   }
 
+  function generatePdf() {
+    
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+    });
+    doc.text(`R&D: ${researchCount}`, 195, 35);
+    doc.setFontSize(18);
+    doc.text("INSPECT.MN - Integrated Report", 14, 15);
+
+    doc.setFontSize(10);
+    doc.text(
+      `Period: ${startDate || "-"} - ${endDate || "-"}`,
+      14,
+      22
+    );
+
+    doc.setFontSize(12);
+
+    doc.text(`Total Activities: ${reportRows.length}`, 14, 35);
+    doc.text(`Inspections: ${inspectionCount}`, 60, 35);
+    doc.text(`Findings: ${findingCount}`, 105, 35);
+    doc.text(`Open Findings: ${openFindings}`, 145, 35);
+    doc.text(
+      `R&D: ${
+        reportRows.filter((x:any) => x.module === "R&D").length
+      }`,
+      195,
+      35
+    );
+
+    autoTable(doc, {
+      startY: 45,
+
+      head: [[
+        "Module",
+        "Name",
+        "Status",
+        "Category",
+        "Responsible",
+        "Date",
+      ]],
+
+      body: reportRows.map((x: any) => [
+        x.module,
+        x.title,
+        x.status,
+        x.category,
+        x.owner,
+        x.date,
+      ]),
+
+      styles: {
+        fontSize: 8,
+      },
+
+      headStyles: {
+        fillColor: [30, 64, 175],
+      },
+    });
+
+    doc.save(
+      `INSPECT_Report_${startDate}_${endDate}.pdf`
+    );
+  }
+
   function buildReportHtml() {
     const rowsHtml = reportRows
       .map(
@@ -261,6 +330,53 @@ export default function ReportsClient({
         `
       )
       .join("");
+
+    const complianceRows = reportRows.filter((x) => x.module === "Compliance");
+    const findingRows = reportRows.filter((x) => x.module === "Finding");
+
+    const highRisk = findingRows.filter(
+      (x) => x.category === "high" || x.category === "critical"
+    ).length;
+
+    const departmentGroups = reportRows.reduce((acc: Record<string, number>, x) => {
+      const key = x.owner || "Тодорхойгүй";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    const departmentRowsHtml = Object.entries(departmentGroups)
+      .map(
+        ([department, count]) => `
+          <tr>
+            <td>${department}</td>
+            <td>${count}</td>
+          </tr>
+        `
+      )
+      .join("");
+
+    const complianceSummaryHtml = `
+      <div class="summary-box">
+        <h3>Compliance Summary</h3>
+        <p>Нийт compliance бүртгэл: <b>${complianceRows.length}</b></p>
+        <p>Идэвхтэй журам, стандарт, зааварчилгаа: <b>${complianceRows.length}</b></p>
+        <p>Тайлант хугацаанд хамаарах compliance item-уудыг нэгтгэн харууллаа.</p>
+      </div>
+    `;
+
+    const findingsSummaryHtml = `
+      <div class="summary-box">
+        <h3>Findings Summary</h3>
+        <p>Нийт илэрсэн зөрчил: <b>${findingCount}</b></p>
+        <p>Нээлттэй зөрчил: <b>${openFindings}</b></p>
+        <p>Өндөр / critical түвшний зөрчил: <b>${highRisk}</b></p>
+      </div>
+    `;
+
+    const conclusionText =
+      openFindings > 0
+        ? "Тайлант хугацаанд нээлттэй зөрчил бүртгэгдсэн тул хариуцсан алба, нэгжүүд засах арга хэмжээг хугацаанд нь хэрэгжүүлэх шаардлагатай."
+        : "Тайлант хугацаанд нээлттэй зөрчилгүй байгаа нь дотоод хяналтын хэрэгжилт тогтвортой байгааг харуулж байна.";
 
     return `
       <html>
@@ -279,21 +395,30 @@ export default function ReportsClient({
               color: #0f172a;
               margin: 0;
               padding: 0;
+              font-size: 12px;
+            }
+
+            .page {
+              page-break-after: always;
+            }
+
+            .page:last-child {
+              page-break-after: auto;
             }
 
             .header {
               display: flex;
               justify-content: space-between;
               align-items: flex-start;
-              border-bottom: 2px solid #0f172a;
+              border-bottom: 3px solid #0f172a;
               padding-bottom: 12px;
-              margin-bottom: 16px;
+              margin-bottom: 18px;
             }
 
-            .brand {
-              font-size: 28px;
+            .logo {
+              font-size: 30px;
               font-weight: 900;
-              letter-spacing: -0.5px;
+              letter-spacing: -1px;
             }
 
             .subtitle {
@@ -306,6 +431,13 @@ export default function ReportsClient({
               text-align: right;
               font-size: 12px;
               color: #475569;
+              line-height: 1.6;
+            }
+
+            .section-title {
+              font-size: 20px;
+              font-weight: 800;
+              margin: 18px 0 10px;
             }
 
             .summary {
@@ -318,7 +450,7 @@ export default function ReportsClient({
             .card {
               border: 1px solid #334155;
               border-radius: 10px;
-              padding: 12px;
+              padding: 14px;
             }
 
             .card-label {
@@ -327,7 +459,7 @@ export default function ReportsClient({
             }
 
             .card-value {
-              font-size: 24px;
+              font-size: 26px;
               font-weight: 900;
               margin-top: 4px;
             }
@@ -344,13 +476,37 @@ export default function ReportsClient({
               color: #2563eb;
             }
 
+            .grid-2 {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 14px;
+            }
+
+            .summary-box {
+              border: 1px solid #334155;
+              border-radius: 12px;
+              padding: 14px;
+              min-height: 120px;
+            }
+
+            .summary-box h3 {
+              margin: 0 0 10px;
+              font-size: 16px;
+            }
+
+            .summary-box p {
+              margin: 6px 0;
+              line-height: 1.45;
+            }
+
             table {
               width: 100%;
               border-collapse: collapse;
               font-size: 10.5px;
             }
 
-            th, td {
+            th,
+            td {
               border: 1px solid #334155;
               padding: 5px;
               text-align: left;
@@ -366,6 +522,20 @@ export default function ReportsClient({
               page-break-inside: avoid;
             }
 
+            .analysis-card {
+              border: 1px solid #334155;
+              border-radius: 12px;
+              padding: 14px;
+              margin-bottom: 12px;
+            }
+
+            .recommendation {
+              border-left: 5px solid #2563eb;
+              background: #f8fafc;
+              padding: 12px 14px;
+              margin-bottom: 10px;
+            }
+
             .footer {
               margin-top: 18px;
               border-top: 1px solid #cbd5e1;
@@ -379,67 +549,186 @@ export default function ReportsClient({
         </head>
 
         <body>
-          <div class="header">
-            <div>
-              <div class="brand">INSPECT.MN — Нэгдсэн тайлан</div>
-              <div class="subtitle">Internal Control Platform</div>
+          <!-- PAGE 1 -->
+          <section class="page">
+            <div class="header">
+              <div>
+                <div class="logo">INSPECT.MN — Нэгдсэн тайлан</div>
+                <div class="subtitle">Internal Control Platform</div>
+              </div>
+
+              <div class="meta">
+                <div>Тайлангийн хугацаа: ${startDate || "-"} — ${endDate || "-"}</div>
+                <div>Модуль: ${moduleFilter === "all" ? "Бүх модуль" : moduleFilter}</div>
+                <div>Үүсгэсэн огноо: ${new Date().toISOString().slice(0, 10)}</div>
+              </div>
             </div>
 
-            <div class="meta">
-              <div>Тайлангийн хугацаа: ${startDate || "-"} — ${endDate || "-"}</div>
-              <div>Модуль: ${moduleFilter === "all" ? "Бүх модуль" : moduleFilter}</div>
-              <div>Үүсгэсэн огноо: ${new Date().toISOString().slice(0, 10)}</div>
+            <div class="section-title">KPI Summary</div>
+
+            <div class="summary">
+              <div class="card">
+                <div class="card-label">Нийт ажил</div>
+                <div class="card-value">${reportRows.length}</div>
+              </div>
+
+              <div class="card">
+                <div class="card-label">ХШ</div>
+                <div class="card-value">${inspectionCount}</div>
+              </div>
+
+              <div class="card">
+                <div class="card-label">Зөрчил</div>
+                <div class="card-value red">${findingCount}</div>
+              </div>
+
+              <div class="card">
+                <div class="card-label">Нээлттэй зөрчил</div>
+                <div class="card-value orange">${openFindings}</div>
+              </div>
+
+              <div class="card">
+                <div class="card-label">R&D</div>
+                <div class="card-value blue">${researchCount}</div>
+              </div>
             </div>
-          </div>
 
-          <div class="summary">
-            <div class="card">
-              <div class="card-label">Нийт ажил</div>
-              <div class="card-value">${reportRows.length}</div>
+            <div class="grid-2">
+              ${complianceSummaryHtml}
+              ${findingsSummaryHtml}
             </div>
 
-            <div class="card">
-              <div class="card-label">ХШ</div>
-              <div class="card-value">${inspectionCount}</div>
+            <div class="section-title">Executive Overview</div>
+
+            <div class="summary-box">
+              <p>
+                Тайлант хугацаанд нийт <b>${reportRows.length}</b> ажил, бүртгэл,
+                хяналт шалгалт болон хөгжүүлэлтийн мэдээлэл нэгтгэгдсэн байна.
+              </p>
+              <p>
+                Илэрсэн нийт зөрчил <b>${findingCount}</b>, үүнээс нээлттэй зөрчил
+                <b>${openFindings}</b> байна.
+              </p>
+              <p>
+                Энэхүү тайлан нь ISO аудит, удирдлагын хурал болон ТУЗ-ийн түвшний
+                мэдээлэлд ашиглах зориулалттай.
+              </p>
             </div>
 
-            <div class="card">
-              <div class="card-label">Зөрчил</div>
-              <div class="card-value red">${findingCount}</div>
+            <div class="footer">
+              <div>Generated by INSPECT.MN</div>
+              <div>Smart Control System</div>
+            </div>
+          </section>
+
+          <!-- PAGE 2 -->
+          <section class="page">
+            <div class="header">
+              <div>
+                <div class="logo">INSPECT.MN — Нэгдсэн хүснэгт</div>
+                <div class="subtitle">Тайлант хугацааны бүх бүртгэлийн жагсаалт</div>
+              </div>
+
+              <div class="meta">
+                <div>${startDate || "-"} — ${endDate || "-"}</div>
+              </div>
             </div>
 
-            <div class="card">
-              <div class="card-label">Нээлттэй зөрчил</div>
-              <div class="card-value orange">${openFindings}</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Модуль</th>
+                  <th>Нэр</th>
+                  <th>Төлөв</th>
+                  <th>Ангилал</th>
+                  <th>Хариуцагч</th>
+                  <th>Огноо</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+
+            <div class="section-title">Алба, нэгжээр ангилсан дүн шинжилгээ</div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Алба / Нэгж / Хариуцагч</th>
+                  <th>Бүртгэлийн тоо</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                ${departmentRowsHtml}
+              </tbody>
+            </table>
+
+            <div class="footer">
+              <div>Generated by INSPECT.MN</div>
+              <div>Smart Control System</div>
+            </div>
+          </section>
+
+          <!-- PAGE 3 -->
+          <section class="page">
+            <div class="header">
+              <div>
+                <div class="logo">INSPECT.MN — Дүн шинжилгээ ба зөвлөмж</div>
+                <div class="subtitle">Risk, Compliance, Conclusion</div>
+              </div>
+
+              <div class="meta">
+                <div>${startDate || "-"} — ${endDate || "-"}</div>
+              </div>
             </div>
 
-            <div class="card">
-              <div class="card-label">R&D</div>
-              <div class="card-value blue">${researchCount}</div>
+            <div class="grid-2">
+              <div class="analysis-card">
+                <h3>Эрсдэлийн дүн шинжилгээ</h3>
+                <p>Нийт илэрсэн зөрчил: <b>${findingCount}</b></p>
+                <p>Нээлттэй зөрчил: <b>${openFindings}</b></p>
+                <p>Өндөр / critical түвшний зөрчил: <b>${highRisk}</b></p>
+              </div>
+
+              <div class="analysis-card">
+                <h3>Compliance хэрэгжилтийн хувь</h3>
+                <p>Тайлант хугацаанд бүртгэгдсэн compliance item: <b>${complianceRows.length}</b></p>
+                <p>Compliance бүртгэлийн хэрэгжилтийг дараагийн хувилбарт оноо, эрсдэлийн түвшинтэй холбон тооцно.</p>
+              </div>
             </div>
-          </div>
 
-          <table>
-            <thead>
-              <tr>
-                <th>Модуль</th>
-                <th>Нэр</th>
-                <th>Төлөв</th>
-                <th>Ангилал</th>
-                <th>Хариуцагч</th>
-                <th>Огноо</th>
-              </tr>
-            </thead>
+            <div class="section-title">Дүгнэлт</div>
 
-            <tbody>
-              ${rowsHtml}
-            </tbody>
-          </table>
+            <div class="analysis-card">
+              <p>${conclusionText}</p>
+            </div>
 
-          <div class="footer">
-            <div>Generated by INSPECT.MN</div>
-            <div>Smart Control System</div>
-          </div>
+            <div class="section-title">Санал зөвлөмж</div>
+
+            <div class="recommendation">
+              1. Нээлттэй зөрчилтэй холбоотой corrective action төлөвлөгөөг хугацаатайгаар баталгаажуулах.
+            </div>
+
+            <div class="recommendation">
+              2. Compliance item бүрийн хэрэгжилтийн хувийг сар бүр шинэчилж, эрсдэлийн түвшинтэй холбон тайлагнах.
+            </div>
+
+            <div class="recommendation">
+              3. R&D төслүүдийн явц, гүйцэтгэл, саатлын шалтгааныг удирдлагын тайланд тусгай хэсгээр оруулах.
+            </div>
+
+            <div class="recommendation">
+              4. Дотоод хяналт, compliance, inspection, CAPA мэдээллийг нэгтгэсэн сар бүрийн dashboard report гаргах.
+            </div>
+
+            <div class="footer">
+              <div>Generated by INSPECT.MN</div>
+              <div>Smart Control System</div>
+            </div>
+          </section>
         </body>
       </html>
     `;

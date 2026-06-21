@@ -3,10 +3,13 @@ import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  let browser;
+
   try {
-    const { html } = await request.json();
+    const { html, fileName } = await request.json();
 
     if (!html) {
       return NextResponse.json(
@@ -15,7 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
@@ -30,21 +33,20 @@ export async function POST(request: NextRequest) {
 
     const pdf = await page.pdf({
       format: "A4",
+      landscape: true,
       printBackground: true,
       margin: {
-        top: "16mm",
-        right: "12mm",
-        bottom: "16mm",
-        left: "12mm",
+        top: "12mm",
+        right: "10mm",
+        bottom: "12mm",
+        left: "10mm",
       },
     });
-
-    await browser.close();
 
     return new NextResponse(pdf, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="inspect-report.pdf"`,
+        "Content-Disposition": `attachment; filename="${fileName || "inspect-report.pdf"}"`,
       },
     });
   } catch (error: any) {
@@ -52,5 +54,9 @@ export async function POST(request: NextRequest) {
       { error: error.message || "PDF generation failed" },
       { status: 500 }
     );
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }

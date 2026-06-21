@@ -246,6 +246,240 @@ export default function ReportsClient({
     }, 500);
   }
 
+  function buildReportHtml() {
+    const rowsHtml = reportRows
+      .map(
+        (x) => `
+          <tr>
+            <td>${x.module || "-"}</td>
+            <td>${x.title || "-"}</td>
+            <td>${x.status || "-"}</td>
+            <td>${x.category || "-"}</td>
+            <td>${x.owner || "-"}</td>
+            <td>${x.date || "-"}</td>
+          </tr>
+        `
+      )
+      .join("");
+
+    return `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>INSPECT.MN Тайлан</title>
+
+          <style>
+            @page {
+              size: A4 landscape;
+              margin: 10mm;
+            }
+
+            body {
+              font-family: Arial, sans-serif;
+              color: #0f172a;
+              margin: 0;
+              padding: 0;
+            }
+
+            .header {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              border-bottom: 2px solid #0f172a;
+              padding-bottom: 12px;
+              margin-bottom: 16px;
+            }
+
+            .brand {
+              font-size: 28px;
+              font-weight: 900;
+              letter-spacing: -0.5px;
+            }
+
+            .subtitle {
+              color: #64748b;
+              font-size: 13px;
+              margin-top: 4px;
+            }
+
+            .meta {
+              text-align: right;
+              font-size: 12px;
+              color: #475569;
+            }
+
+            .summary {
+              display: grid;
+              grid-template-columns: repeat(5, 1fr);
+              gap: 10px;
+              margin-bottom: 18px;
+            }
+
+            .card {
+              border: 1px solid #334155;
+              border-radius: 10px;
+              padding: 12px;
+            }
+
+            .card-label {
+              font-size: 12px;
+              color: #64748b;
+            }
+
+            .card-value {
+              font-size: 24px;
+              font-weight: 900;
+              margin-top: 4px;
+            }
+
+            .red {
+              color: #dc2626;
+            }
+
+            .orange {
+              color: #ea580c;
+            }
+
+            .blue {
+              color: #2563eb;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 10.5px;
+            }
+
+            th, td {
+              border: 1px solid #334155;
+              padding: 5px;
+              text-align: left;
+              vertical-align: top;
+            }
+
+            th {
+              background: #f1f5f9;
+              font-weight: 800;
+            }
+
+            tr {
+              page-break-inside: avoid;
+            }
+
+            .footer {
+              margin-top: 18px;
+              border-top: 1px solid #cbd5e1;
+              padding-top: 8px;
+              font-size: 11px;
+              color: #64748b;
+              display: flex;
+              justify-content: space-between;
+            }
+          </style>
+        </head>
+
+        <body>
+          <div class="header">
+            <div>
+              <div class="brand">INSPECT.MN — Нэгдсэн тайлан</div>
+              <div class="subtitle">Internal Control Platform</div>
+            </div>
+
+            <div class="meta">
+              <div>Тайлангийн хугацаа: ${startDate || "-"} — ${endDate || "-"}</div>
+              <div>Модуль: ${moduleFilter === "all" ? "Бүх модуль" : moduleFilter}</div>
+              <div>Үүсгэсэн огноо: ${new Date().toISOString().slice(0, 10)}</div>
+            </div>
+          </div>
+
+          <div class="summary">
+            <div class="card">
+              <div class="card-label">Нийт ажил</div>
+              <div class="card-value">${reportRows.length}</div>
+            </div>
+
+            <div class="card">
+              <div class="card-label">ХШ</div>
+              <div class="card-value">${inspectionCount}</div>
+            </div>
+
+            <div class="card">
+              <div class="card-label">Зөрчил</div>
+              <div class="card-value red">${findingCount}</div>
+            </div>
+
+            <div class="card">
+              <div class="card-label">Нээлттэй зөрчил</div>
+              <div class="card-value orange">${openFindings}</div>
+            </div>
+
+            <div class="card">
+              <div class="card-label">R&D</div>
+              <div class="card-value blue">${researchCount}</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Модуль</th>
+                <th>Нэр</th>
+                <th>Төлөв</th>
+                <th>Ангилал</th>
+                <th>Хариуцагч</th>
+                <th>Огноо</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+
+          <div class="footer">
+            <div>Generated by INSPECT.MN</div>
+            <div>Smart Control System</div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  async function downloadPdf() {
+    try {
+      const fileName = `inspect_report_${startDate || "all"}_${endDate || "all"}.pdf`;
+
+      const response = await fetch("/api/reports/pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          html: buildReportHtml(),
+          fileName,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || "PDF үүсгэхэд алдаа гарлаа");
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      alert(error.message || "PDF татахад алдаа гарлаа");
+    }
+  }
+
   function handleGenerateReport() {
     setShowReport(true);
   }
@@ -401,7 +635,7 @@ export default function ReportsClient({
                 Хэвлэх
               </button>
 
-              <button onClick={printReport} className="rounded-xl border px-4 py-2">
+              <button onClick={downloadPdf} className="rounded-xl border px-4 py-2">
                 PDF болгох
               </button>
 

@@ -37,6 +37,15 @@ export default function ReportsClient({
   const [moduleFilter, setModuleFilter] = useState("all");
   const [showReport, setShowReport] = useState(false);
 
+  const reportNumber = useMemo(
+    () =>
+      "INS-RPT-" +
+      new Date().getFullYear() +
+      "-" +
+      String(Date.now()).slice(-6),
+    []
+  );
+
   const reportRows = useMemo(() => {
     const allRows = [
       ...inspections.map((x) => ({
@@ -248,7 +257,7 @@ export default function ReportsClient({
     }, 500);
   }
 
-  function generatePdf() {
+  async function generatePdf() {
     
     const doc = new jsPDF({
       orientation: "landscape",
@@ -313,6 +322,23 @@ export default function ReportsClient({
     doc.save(
       `INSPECT_Report_${startDate}_${endDate}.pdf`
     );
+
+    await fetch("/api/reports/history", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        report_no: reportNumber,
+        report_name: "Integrated Management Report",
+        start_date: startDate,
+        end_date: endDate,
+        module_filter: moduleFilter,
+        total_records: reportRows.length,
+        generated_by: "Admin",
+      }),
+    });
+
   }
 
   function buildReportHtml() {
@@ -561,6 +587,7 @@ export default function ReportsClient({
                 <div>Тайлангийн хугацаа: ${startDate || "-"} — ${endDate || "-"}</div>
                 <div>Модуль: ${moduleFilter === "all" ? "Бүх модуль" : moduleFilter}</div>
                 <div>Үүсгэсэн огноо: ${new Date().toISOString().slice(0, 10)}</div>
+                <div>Report No: ${reportNumber}</div>
               </div>
             </div>
 

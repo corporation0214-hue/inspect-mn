@@ -18,24 +18,24 @@ function inDateRange(dateValue: string, start: string, end: string) {
   return true;
 }
 
-
-
-
 export default function ReportsClient({
   inspections,
   findings,
   compliance,
   research,
+  voice,
 }: {
   inspections: any[];
   findings: any[];
   compliance: any[];
   research: any[];
+  voice: any[];
 }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [moduleFilter, setModuleFilter] = useState("all");
   const [showReport, setShowReport] = useState(false);
+  const employeeVoices = voice || [];
 
   const reportNumber = useMemo(
     () =>
@@ -80,6 +80,15 @@ export default function ReportsClient({
         owner: x.owner,
         date: getDateOnly(x.start_date || x.end_date || x.created_at),
       })),
+
+      ...employeeVoices.map((x) => ({
+        module: "Employee Voice",
+        title: x.title,
+        status: x.status,
+        category: x.category,
+        owner: x.department,
+        date: getDateOnly(x.voice_date || x.created_at),
+      })),
     ];
 
     return allRows.filter((row) => {
@@ -89,7 +98,7 @@ export default function ReportsClient({
 
       return matchModule && matchDate;
     });
-  }, [inspections, findings, compliance, research, startDate, endDate, moduleFilter]);
+  }, [inspections, findings, compliance, research, employeeVoices, startDate, endDate, moduleFilter]);
 
   const inspectionCount = reportRows.filter((x) => x.module === "Inspection").length;
   const findingCount = reportRows.filter((x) => x.module === "Finding").length;
@@ -99,6 +108,50 @@ export default function ReportsClient({
   const openFindings = reportRows.filter(
     (x) => x.module === "Finding" && x.status === "open"
   ).length;
+
+  const voiceCount = employeeVoices.length;
+
+  const suggestionCount =
+    employeeVoices.filter(
+      (x) => x.category === "suggestion"
+    ).length;
+
+  const complaintCount =
+    employeeVoices.filter(
+      (x) => x.category === "complaint"
+    ).length;
+
+  const riskVoiceCount =
+    employeeVoices.filter(
+      (x) => x.category === "risk"
+    ).length;
+
+  const violationCount =
+    employeeVoices.filter(
+      (x) => x.category === "violation"
+    ).length;
+
+  const confidentialCount =
+    employeeVoices.filter(
+      (x) => x.category === "confidential"
+    ).length;
+
+  const openVoiceCount =
+    employeeVoices.filter(
+      (x) => x.status !== "closed"
+    ).length;
+
+  const closedVoiceCount =
+    employeeVoices.filter(
+      (x) => x.status === "closed"
+    ).length;
+
+  const highVoiceCount =
+    employeeVoices.filter(
+      (x) =>
+        x.priority === "high" ||
+        x.priority === "critical"
+    ).length;
 
   function printReport() {
     const rowsHtml = reportRows
@@ -398,6 +451,17 @@ export default function ReportsClient({
         <p>Өндөр / critical түвшний зөрчил: <b>${highRisk}</b></p>
       </div>
     `;
+    
+    const employeeVoiceSummaryHtml = `
+      <div class="summary-box">
+        <h3>Employee Voice Summary</h3>
+        <p>Нийт бүртгэл: <b>${voiceCount}</b></p>
+        <p>Санал: <b>${suggestionCount}</b></p>
+        <p>Гомдол: <b>${complaintCount}</b></p>
+        <p>Эрсдэл: <b>${riskVoiceCount}</b></p>
+        <p>Өндөр ач холбогдол: <b>${highVoiceCount}</b></p>
+      </div>
+      `;
 
     const conclusionText =
       openFindings > 0
@@ -620,9 +684,16 @@ export default function ReportsClient({
               </div>
             </div>
 
-            <div class="grid-2">
+            <div
+              style="
+              display:grid;
+              grid-template-columns:1fr 1fr 1fr;
+              gap:14px;
+              "
+              >
               ${complianceSummaryHtml}
               ${findingsSummaryHtml}
+              ${employeeVoiceSummaryHtml}
             </div>
 
             <div class="section-title">Executive Overview</div>
@@ -725,6 +796,14 @@ export default function ReportsClient({
                 <p>Тайлант хугацаанд бүртгэгдсэн compliance item: <b>${complianceRows.length}</b></p>
                 <p>Compliance бүртгэлийн хэрэгжилтийг дараагийн хувилбарт оноо, эрсдэлийн түвшинтэй холбон тооцно.</p>
               </div>
+            </div>
+
+            <div class="analysis-card">
+              <h3>Employee Voice Analytics</h3>
+              <p>Нийт бүртгэл: <b>${voiceCount}</b></p>
+              <p>Нээлттэй: <b>${openVoiceCount}</b></p>
+              <p>Хаагдсан: <b>${closedVoiceCount}</b></p>
+              <p>Өндөр ач холбогдолтой: <b>${highVoiceCount}</b></p>
             </div>
 
             <div class="section-title">Дүгнэлт</div>
@@ -837,6 +916,8 @@ export default function ReportsClient({
             <option value="Finding">Findings</option>
             <option value="Compliance">Compliance</option>
             <option value="R&D">Research & Development</option>
+            <option value="Employee Voice">Employee Voice</option>
+
           </select>
 
           <button
@@ -848,26 +929,32 @@ export default function ReportsClient({
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border bg-white p-5">
-          <p className="text-sm text-slate-500">Хяналт шалгалт</p>
-          <p className="text-3xl font-bold">{inspectionCount}</p>
+      <div className="grid grid-cols-6 gap-3">
+        <div className="rounded-xl border bg-white p-3">
+          <p className="text-xs text-slate-500">Хяналт шалгалт</p>
+          <p className="text-2xl font-bold">{inspectionCount}</p>
         </div>
 
-        <div className="rounded-2xl border bg-white p-5">
-          <p className="text-sm text-slate-500">Зөрчил</p>
+        <div className="rounded-xl border bg-white p-3">
+          <p className="text-xs text-slate-500">Зөрчил</p>
           <p className="text-3xl font-bold text-red-600">{findingCount}</p>
         </div>
 
-        <div className="rounded-2xl border bg-white p-5">
-          <p className="text-sm text-slate-500">Compliance</p>
+        <div className="rounded-xl border bg-white p-3">
+          <p className="text-xs text-slate-500">Compliance</p>
           <p className="text-3xl font-bold text-green-600">{complianceCount}</p>
         </div>
 
-        <div className="rounded-2xl border bg-white p-5">
-          <p className="text-sm text-slate-500">R&D</p>
+        <div className="rounded-xl border bg-white p-3">
+          <p className="text-xs text-slate-500">R&D</p>
           <p className="text-3xl font-bold text-blue-600">{researchCount}</p>
         </div>
+
+        <div className="rounded-xl border bg-white p-3">
+          <p className="text-xs text-slate-500">Employee Voice</p>
+          <p className="text-3xl font-bold text-purple-600">{voiceCount}</p>
+        </div>
+
       </div>
 
       <div className="rounded-2xl border bg-white p-5">
@@ -916,7 +1003,7 @@ export default function ReportsClient({
             <div className="print-hidden flex items-start justify-between border-b bg-white p-5">
                 <div>
                   <h1 className="text-2xl font-bold">INSPECT.MN — Нэгдсэн тайлан</h1>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-xs text-slate-500">
                     Тайлангийн хугацаа: {startDate || "Эхлэл"} — {endDate || "Дуусах"} ·{" "}
                     {moduleFilter === "all" ? "Бүх модуль" : moduleFilter}
                   </p>
@@ -932,13 +1019,43 @@ export default function ReportsClient({
             <div id="report-content" className="flex-1 overflow-y-auto p-5 bg-white">
               <div className="space-y-5">
 
-                <div className="report-summary-grid grid gap-3 md:grid-cols-5">
-                  <ReportSummaryCard label="Нийт ажил" value={reportRows.length} />
-                  <ReportSummaryCard label="ХШ" value={inspectionCount} />
-                  <ReportSummaryCard label="Зөрчил" value={findingCount} color="text-red-600" />
-                  <ReportSummaryCard label="Нээлттэй зөрчил" value={openFindings} color="text-orange-600" />
-                  <ReportSummaryCard label="R&D" value={researchCount} color="text-blue-600" />
-                </div>
+                <div className="grid grid-cols-6 gap-2">
+  <ReportSummaryCard
+    label="Нийт ажил"
+    value={reportRows.length}
+    color="text-slate-900"
+  />
+
+  <ReportSummaryCard
+    label="ХШ"
+    value={inspectionCount}
+    color="text-blue-600"
+  />
+
+  <ReportSummaryCard
+    label="Зөрчил"
+    value={findingCount}
+    color="text-red-600"
+  />
+
+  <ReportSummaryCard
+    label="Нээлттэй"
+    value={openFindings}
+    color="text-orange-600"
+  />
+
+  <ReportSummaryCard
+    label="R&D"
+    value={researchCount}
+    color="text-indigo-600"
+  />
+
+  <ReportSummaryCard
+    label="Voice"
+    value={voiceCount}
+    color="text-purple-600"
+  />
+</div>
 
                 <div className="report-table-wrapper max-h-[460px] overflow-auto rounded-xl border">
                   <ReportTable rows={reportRows} />

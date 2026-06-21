@@ -8,9 +8,11 @@ const menus = [
   { href: "/inspection", label: "Inspection Center", icon: "I" },
   { href: "/compliance", label: "Compliance Center", icon: "C" },
   { href: "/research", label: "Research & Development", icon: "R" },
+  { href: "/reports", label: "Reports", icon: "RP" },
   { href: "/voice", label: "Employee Voice", icon: "V" },
   { href: "/ai", label: "AI Center", icon: "AI" },
   { href: "/settings", label: "Settings", icon: "S" },
+  
 ];
 
 type Props = {
@@ -87,6 +89,7 @@ export default function Sidebar({
               </span>
 
               {expanded && <span className="whitespace-nowrap">{menu.label}</span>}
+
             </Link>
           ))}
         </nav>

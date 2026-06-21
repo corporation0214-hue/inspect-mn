@@ -44,6 +44,7 @@ export default async function ReportsPage() {
         findings={findings ?? []}
         compliance={compliance ?? []}
         research={research ?? []}
+        voice={research ?? []}
       />
     </DashboardLayout>
   );

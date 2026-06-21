@@ -1,38 +1,29 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import ModuleCard from "@/components/dashboard/ModuleCard";
+import { createClient } from "@/lib/supabase/server";
+import SettingsClient from "./SettingsClient";
 
-export default function SettingsPage() {
-  const settings = [
-    "Байгууллагын мэдээлэл",
-    "Алба, хэлтэс",
-    "Албан тушаал",
-    "Хэрэглэгч",
-    "Эрхийн тохиргоо",
-    "Dashboard Builder",
-    "Checklist Builder",
-    "Workflow Builder",
-    "AI Knowledge Base",
-    "Telegram Bot Settings",
-  ];
+export default async function SettingsPage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let profile = null;
+
+  if (user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    profile = data;
+  }
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-slate-500">Байгууллага өөрийн dashboard, workflow, checklist, AI сангаа тохируулна</p>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {settings.map((x) => (
-            <ModuleCard key={x} title={x} description="Тохиргооны модуль">
-              <button className="mt-3 rounded-xl border px-4 py-2 text-sm">
-                Нээх
-              </button>
-            </ModuleCard>
-          ))}
-        </div>
-      </div>
+      <SettingsClient user={user} profile={profile} />
     </DashboardLayout>
   );
 }

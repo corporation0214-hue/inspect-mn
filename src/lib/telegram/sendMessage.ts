@@ -1,3 +1,10 @@
+export function escapeTelegramHtml(text: string) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export async function sendTelegramMessage(chatId: string, text: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -14,6 +21,7 @@ export async function sendTelegramMessage(chatId: string, text: string) {
       chat_id: chatId,
       text,
       parse_mode: "HTML",
+      disable_web_page_preview: true,
     }),
   });
 

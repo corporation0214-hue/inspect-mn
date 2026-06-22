@@ -27,14 +27,12 @@ function removeCommand(text: string) {
 export async function POST(req: Request) {
 
   const body = await req.json();
-
+    try {
     console.log(
       "TELEGRAM UPDATE:",
       JSON.stringify(body, null, 2)
     );
-
-
-  try {
+  
     const secret = req.headers.get("x-telegram-bot-api-secret-token");
 
     if (secret !== process.env.TELEGRAM_WEBHOOK_SECRET) {
@@ -48,7 +46,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    const chatId = "987654321";
+    const chatId = String(message.chat.id);
     const telegramId = String(message.from.id);
     const username = message.from.username || "";
     const fullName = [message.from.first_name, message.from.last_name]

@@ -137,6 +137,23 @@ function classifyVoice(text: string) {
   };
 }
 
+const allowedRoles = [
+  "ceo",
+  "admin",
+  "manager",
+  "inspector",
+  "engineer",
+  "employee",
+];
+
+function isAdminRole(role: string) {
+  return ["ceo", "admin"].includes(role);
+}
+
+function getArgs(text: string) {
+  return text.trim().split(/\s+/).slice(1);
+}
+
 async function getTelegramUser(telegramId: string, username: string, fullName: string) {
   const { data } = await supabase
     .from("telegram_users")
@@ -242,6 +259,14 @@ export async function POST(req: Request) {
 
     const tgUser = await getTelegramUser(telegramId, username, fullName);
     const role = tgUser?.role || "employee";
+    if (tgUser?.status === "disabled") {
+      await sendTelegramMessage(
+        chatId,
+        "⛔ Таны Telegram bot ашиглах эрх идэвхгүй байна."
+      );
+
+      return NextResponse.json({ ok: true });
+    }
 
     await supabase.from("telegram_messages").insert({
       telegram_id: telegramId,
@@ -288,6 +313,12 @@ export async function POST(req: Request) {
 /report
 /profile
 /anonymous [текст] - нэргүй санал, эрсдэл илгээх
+/myrole - өөрийн role харах
+/users - Telegram users харах CEO/Admin
+/setrole <telegram_id> <role> - role өөрчлөх
+/setdept <telegram_id> <department> - department тохируулах
+/disableuser <telegram_id>
+/enableuser <telegram_id>
 
 Шууд асуулт:
 Өндөр эрсдэлтэй 5 зөрчил харуул
@@ -309,6 +340,238 @@ Username: ${escapeTelegramHtml(username || "-")}
 Role: <b>${escapeTelegramHtml(role)}</b>
 Telegram ID: ${telegramId}
 `
+      );
+
+      return NextResponse.json({ ok: true });
+    }
+
+    if (text === "/myrole") {
+      await sendTelegramMessage(
+        chatId,
+        `
+    <b>Таны Telegram Role</b>
+
+    Нэр: ${escapeTelegramHtml(fullName || "-")}
+    Telegram ID: ${telegramId}
+    Role: <b>${escapeTelegramHtml(role)}</b>
+    Department: ${escapeTelegramHtml(tgUser?.department || "-")}
+    Status: ${escapeTelegramHtml(tgUser?.status || "-")}
+    `
+      );
+
+      return NextResponse.json({ ok: true });
+    }
+
+    if (text === "/users") {
+      if (!isAdminRole(role)) {
+        await sendTelegramMessage(
+          chatId,
+          "⛔ Энэ командыг зөвхөн CEO/Admin ашиглана."
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      const { data: users, error } = await supabase
+        .from("telegram_users")
+        .select("telegram_id, full_name, username, role, department, status")
+        .order("created_at", { ascending: false })
+        .limit(30);
+
+      if (error) {
+        await sendTelegramMessage(
+          chatId,
+          `User list алдаа: ${escapeTelegramHtml(error.message)}`
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      const list =
+        users
+          ?.map(
+            (u: any, index: number) =>
+              `${index + 1}. <b>${escapeTelegramHtml(u.full_name || u.username || "-")}</b>
+    ID: <code>${escapeTelegramHtml(u.telegram_id)}</code>
+    Role: ${escapeTelegramHtml(u.role || "-")}
+    Dept: ${escapeTelegramHtml(u.department || "-")}
+    Status: ${escapeTelegramHtml(u.status || "-")}`
+          )
+          .join("\n\n") || "User олдсонгүй.";
+
+      await sendTelegramMessage(chatId, `<b>Telegram Users</b>\n\n${list}`);
+
+      return NextResponse.json({ ok: true });
+    }
+
+    if (text.startsWith("/setrole")) {
+      if (!isAdminRole(role)) {
+        await sendTelegramMessage(
+          chatId,
+          "⛔ Role өөрчлөх эрх хүрэлцэхгүй байна."
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      const [targetTelegramId, newRole] = getArgs(text);
+
+      if (!targetTelegramId || !newRole) {
+        await sendTelegramMessage(
+          chatId,
+          `
+    <b>Role солих format</b>
+
+    /setrole 1383723364 ceo
+
+    Role:
+    ceo, admin, manager, inspector, engineer, employee
+    `
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      if (!allowedRoles.includes(newRole)) {
+        await sendTelegramMessage(
+          chatId,
+          `Role буруу байна: ${escapeTelegramHtml(newRole)}`
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      const { error } = await supabase
+        .from("telegram_users")
+        .update({
+          role: newRole,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("telegram_id", targetTelegramId);
+
+      if (error) {
+        await sendTelegramMessage(
+          chatId,
+          `Role update алдаа: ${escapeTelegramHtml(error.message)}`
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      await sendTelegramMessage(
+        chatId,
+        `
+    ✅ <b>Role шинэчлэгдлээ</b>
+
+    Telegram ID: <code>${escapeTelegramHtml(targetTelegramId)}</code>
+    New Role: <b>${escapeTelegramHtml(newRole)}</b>
+    `
+      );
+
+      return NextResponse.json({ ok: true });
+    }
+
+    if (text.startsWith("/setdept")) {
+      if (!isAdminRole(role)) {
+        await sendTelegramMessage(
+          chatId,
+          "⛔ Department өөрчлөх эрх хүрэлцэхгүй байна."
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      const args = getArgs(text);
+      const targetTelegramId = args[0];
+      const department = args.slice(1).join(" ");
+
+      if (!targetTelegramId || !department) {
+        await sendTelegramMessage(
+          chatId,
+          `
+    <b>Department тохируулах format</b>
+
+    /setdept 1383723364 ДХШ
+    `
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      const { error } = await supabase
+        .from("telegram_users")
+        .update({
+          department,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("telegram_id", targetTelegramId);
+
+      if (error) {
+        await sendTelegramMessage(
+          chatId,
+          `Department update алдаа: ${escapeTelegramHtml(error.message)}`
+        );
+        return NextResponse.json({ ok: true });
+      }
+
+      await sendTelegramMessage(
+        chatId,
+        `
+    ✅ <b>Department шинэчлэгдлээ</b>
+
+    Telegram ID: <code>${escapeTelegramHtml(targetTelegramId)}</code>
+    Department: ${escapeTelegramHtml(department)}
+    `
+      );
+
+      return NextResponse.json({ ok: true });
+    }
+
+    if (text.startsWith("/disableuser")) {
+      if (!isAdminRole(role)) {
+        await sendTelegramMessage(chatId, "⛔ Эрх хүрэлцэхгүй байна.");
+        return NextResponse.json({ ok: true });
+      }
+
+      const [targetTelegramId] = getArgs(text);
+
+      if (!targetTelegramId) {
+        await sendTelegramMessage(chatId, "/disableuser 1383723364");
+        return NextResponse.json({ ok: true });
+      }
+
+      await supabase
+        .from("telegram_users")
+        .update({
+          status: "disabled",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("telegram_id", targetTelegramId);
+
+      await sendTelegramMessage(
+        chatId,
+        `⛔ User disabled: <code>${escapeTelegramHtml(targetTelegramId)}</code>`
+      );
+
+      return NextResponse.json({ ok: true });
+    }
+
+    if (text.startsWith("/enableuser")) {
+      if (!isAdminRole(role)) {
+        await sendTelegramMessage(chatId, "⛔ Эрх хүрэлцэхгүй байна.");
+        return NextResponse.json({ ok: true });
+      }
+
+      const [targetTelegramId] = getArgs(text);
+
+      if (!targetTelegramId) {
+        await sendTelegramMessage(chatId, "/enableuser 1383723364");
+        return NextResponse.json({ ok: true });
+      }
+
+      await supabase
+        .from("telegram_users")
+        .update({
+          status: "active",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("telegram_id", targetTelegramId);
+
+      await sendTelegramMessage(
+        chatId,
+        `✅ User enabled: <code>${escapeTelegramHtml(targetTelegramId)}</code>`
       );
 
       return NextResponse.json({ ok: true });

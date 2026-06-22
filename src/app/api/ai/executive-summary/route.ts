@@ -13,26 +13,41 @@ const supabase = createClient(
 
 export async function GET() {
   try {
-    const [inspection, compliance, research, voice] = await Promise.all([
-      supabase.from("inspection_findings").select("*"),
-      supabase.from("compliance_registry").select("*"),
-      supabase.from("research_projects").select("*"),
-      supabase.from("employee_voice").select("*"),
+    const [inspections, findings, compliance, research, voice] = await Promise.all([
+      supabase.from("inspections").select("*").limit(100),
+      supabase.from("findings").select("*").limit(100),
+      supabase.from("compliance_items").select("*").limit(100),
+      supabase.from("research_projects").select("*").limit(100),
+      supabase.from("employee_voice").select("*").limit(100),
     ]);
 
     const prompt = `
-Та дотоод хяналтын удирдлагын зөвлөх AI.
+    Та INSPECT.MN дотоод хяналтын удирдлагын AI зөвлөх.
 
-Дараах өгөгдөл дээр үндэслэн
-5-7 өгүүлбэртэй Executive Summary гарга.
+    Дараах бодит Supabase өгөгдөл дээр үндэслэн Dashboard-ийн Executive Summary гарга.
 
-Inspection count: ${inspection.data?.length || 0}
-Compliance count: ${compliance.data?.length || 0}
-Research count: ${research.data?.length || 0}
-Voice count: ${voice.data?.length || 0}
+    Inspection records:
+    ${JSON.stringify(inspections.data || [])}
 
-Монгол хэлээр.
-`;
+    Findings:
+    ${JSON.stringify(findings.data || [])}
+
+    Compliance items:
+    ${JSON.stringify(compliance.data || [])}
+
+    Research projects:
+    ${JSON.stringify(research.data || [])}
+
+    Employee Voice:
+    ${JSON.stringify(voice.data || [])}
+
+    Шаардлага:
+    - Монгол хэлээр бич.
+    - "өгөгдөл байхгүй" гэж битгий хэл, зөвхөн үнэхээр хоосон үед хэл.
+    - Inspection, Compliance, Findings, Employee Voice, R&D мэдээллийг заавал тусга.
+    - 5-7 өгүүлбэртэй удирдлагын товч дүгнэлт гарга.
+    - Өндөр эрсдэл, нээлттэй зөрчил, compliance хэрэгжилт, employee voice саналын чиг хандлагыг дурд.
+    `;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",

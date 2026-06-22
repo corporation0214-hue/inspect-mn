@@ -146,6 +146,37 @@ const allowedRoles = [
   "employee",
 ];
 
+const commandPermissions: Record<string, string[]> = {
+  "/report": ["ceo", "admin", "manager"],
+  "/daily": ["ceo", "admin"],
+  "/risk": ["ceo", "admin", "manager", "inspector"],
+  "/kpi": ["ceo", "admin", "manager"],
+  "/compliance": ["ceo", "admin", "manager", "inspector"],
+  "/users": ["ceo", "admin"],
+  "/setrole": ["ceo", "admin"],
+  "/setdept": ["ceo", "admin"],
+  "/disableuser": ["ceo", "admin"],
+  "/enableuser": ["ceo", "admin"],
+};
+
+function canUseCommand(role: string, command: string) {
+  const allowed = commandPermissions[command];
+
+  if (!allowed) return true;
+
+  return allowed.includes(role);
+}
+
+async function denyCommand(chatId: string, command: string, role: string) {
+  await sendTelegramMessage(
+    chatId,
+    `⛔ <b>Эрх хүрэлцэхгүй байна</b>
+
+Command: <code>${escapeTelegramHtml(command)}</code>
+Your role: <b>${escapeTelegramHtml(role)}</b>`
+  );
+}
+
 function isAdminRole(role: string) {
   return ["ceo", "admin"].includes(role);
 }
@@ -255,6 +286,9 @@ export async function POST(req: Request) {
 
     const text = normalizeText(message.text || "");
 
+
+    const command = text.startsWith("/") ? text.split(" ")[0].toLowerCase() : "";
+
     console.log("TELEGRAM TEXT:", text);
 
     const tgUser = await getTelegramUser(telegramId, username, fullName);
@@ -268,12 +302,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
+    if (command && !canUseCommand(role, command)) {
+      await denyCommand(chatId, command, role);
+      return NextResponse.json({ ok: true });
+    }
+
     await supabase.from("telegram_messages").insert({
       telegram_id: telegramId,
       username,
       role,
       message: text,
-      command: text.startsWith("/") ? text.split(" ")[0] : "ai_question",
+      command: command || "ai_question",
       module: "telegram",
       payload: body,
     });

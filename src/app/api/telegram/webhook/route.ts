@@ -25,12 +25,13 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true });
-  } catch (error: any) {
-    console.error("WEBHOOK ERROR:", error?.message || error);
+    } catch (error: any) {
+      console.error("WEBHOOK ERROR:", error?.message || error);
 
-    return NextResponse.json(
-      { error: error?.message || "Webhook error" },
-      { status: 500 }
-    );
-  }
+      return NextResponse.json({
+        ok: true,
+        handled: false,
+        error: error?.message || "Webhook error",
+      });
+    }
 }

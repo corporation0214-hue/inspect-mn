@@ -33,9 +33,17 @@ export default async function UsersPage() {
     .select("*")
     .order("created_at", { ascending: false });
 
+  const { data: telegramUsers } = await adminSupabase
+    .from("telegram_users")
+    .select("*")
+    .order("created_at", { ascending: false });
+
   return (
     <DashboardLayout>
-      <UsersClient users={users || []} />
+      <UsersClient
+        users={users || []}
+        telegramUsers={telegramUsers || []}
+      />
     </DashboardLayout>
   );
 }

@@ -5,7 +5,13 @@ import UserCard from "@/components/admin/UserCard";
 import UserEditModal from "@/components/admin/UserEditModal";
 import UserCreateModal from "@/components/admin/UserCreateModal";
 
-export default function UsersClient({ users }: { users: any[] }) {
+export default function UsersClient({
+  users,
+  telegramUsers,
+}: {
+  users: any[];
+  telegramUsers: any[];
+}) {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [filter, setFilter] = useState("all");
 
@@ -18,6 +24,16 @@ export default function UsersClient({ users }: { users: any[] }) {
   const activeUsers = users.filter((x) => x.status === "active").length;
   const managers = users.filter((x) => x.role === "manager").length;
   const admins = users.filter((x) => x.role === "admin").length;
+  const totalTelegramUsers = telegramUsers.length;
+  const activeTelegramUsers = telegramUsers.filter(
+    (x) => x.status === "active"
+  ).length;
+  const ceoTelegramUsers = telegramUsers.filter(
+    (x) => x.role === "ceo"
+  ).length;
+  const employeeTelegramUsers = telegramUsers.filter(
+    (x) => x.role === "employee"
+  ).length;
   const [showCreate,setShowCreate] = useState(false);
   
   return (
@@ -47,6 +63,13 @@ export default function UsersClient({ users }: { users: any[] }) {
         <UserCard title="Manager" value={managers} color="text-blue-600" />
         <UserCard title="Admin" value={admins} color="text-purple-600" />
       </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <UserCard title="Telegram Users" value={totalTelegramUsers} />
+      <UserCard title="Telegram Active" value={activeTelegramUsers} color="text-green-600" />
+      <UserCard title="Telegram CEO" value={ceoTelegramUsers} color="text-purple-600" />
+      <UserCard title="Telegram Employee" value={employeeTelegramUsers} color="text-blue-600" />
+    </div>
 
       <div className="rounded-2xl border bg-white p-5">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -151,6 +174,79 @@ export default function UsersClient({ users }: { users: any[] }) {
         </div>
       </div>
       
+      <div className="rounded-2xl border bg-white p-5">
+  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 className="text-xl font-bold">Telegram Users Registry</h2>
+      <p className="text-sm text-slate-500">
+        Telegram Bot хэрэглэгч, role, department, status
+      </p>
+    </div>
+  </div>
+
+  <div className="max-h-[520px] overflow-auto rounded-xl border">
+    <table className="w-full min-w-[1000px] text-sm">
+      <thead className="sticky top-0 bg-slate-100">
+        <tr>
+          <th className="border px-4 py-3 text-left">Нэр</th>
+          <th className="border px-4 py-3 text-left">Username</th>
+          <th className="border px-4 py-3 text-left">Telegram ID</th>
+          <th className="border px-4 py-3 text-left">Role</th>
+          <th className="border px-4 py-3 text-left">Department</th>
+          <th className="border px-4 py-3 text-left">Position</th>
+          <th className="border px-4 py-3 text-left">Status</th>
+          <th className="border px-4 py-3 text-left">Created</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {telegramUsers.map((user) => (
+          <tr key={user.id} className="hover:bg-slate-50">
+            <td className="border px-4 py-3">{user.full_name || "-"}</td>
+            <td className="border px-4 py-3">
+              {user.username ? `@${user.username}` : "-"}
+            </td>
+            <td className="border px-4 py-3">
+              <code>{user.telegram_id}</code>
+            </td>
+            <td className="border px-4 py-3">
+              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">
+                {user.role || "employee"}
+              </span>
+            </td>
+            <td className="border px-4 py-3">{user.department || "-"}</td>
+            <td className="border px-4 py-3">{user.position || "-"}</td>
+            <td className="border px-4 py-3">
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-bold ${
+                  user.status === "active"
+                    ? "bg-green-100 text-green-700"
+                    : user.status === "disabled"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-slate-100 text-slate-700"
+                }`}
+              >
+                {user.status || "-"}
+              </span>
+            </td>
+            <td className="border px-4 py-3">
+              {user.created_at ? String(user.created_at).slice(0, 16) : "-"}
+            </td>
+          </tr>
+        ))}
+
+        {telegramUsers.length === 0 && (
+          <tr>
+            <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
+              Telegram хэрэглэгч олдсонгүй.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>
+
         <UserCreateModal
           open={showCreate}
           onClose={() => setShowCreate(false)}

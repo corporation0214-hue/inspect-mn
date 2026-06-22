@@ -17,12 +17,29 @@ export async function POST(req: Request) {
     console.log("TELEGRAM CHAT ID:", chatId);
     console.log("TELEGRAM TEXT:", text);
 
-    if (chatId) {
-      await sendTelegramMessage(
-        chatId,
-        `✅ Webhook received\n\nText: ${text || "-"}\nChat ID: ${chatId}`
-      );
-    }
+    // unknown command or normal text → AI
+  if (text && !text.startsWith("/")) {
+    await sendTelegramMessage(chatId, "AI боловсруулж байна...");
+
+    const aiRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: text,
+      }),
+    });
+
+    const aiData = await aiRes.json();
+
+    await sendTelegramMessage(
+      chatId,
+      aiData.answer || aiData.summary || "AI хариу үүсгэж чадсангүй."
+    );
+
+    return NextResponse.json({ ok: true });
+  }
 
     return NextResponse.json({ ok: true });
     } catch (error: any) {
@@ -34,4 +51,5 @@ export async function POST(req: Request) {
         error: error?.message || "Webhook error",
       });
     }
+    
 }

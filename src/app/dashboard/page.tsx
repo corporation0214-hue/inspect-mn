@@ -5,9 +5,11 @@ import SimpleTable from "@/components/dashboard/SimpleTable";
 import { createClient } from "@/lib/supabase/server";
 import InspectionAnalytics from "@/components/dashboard/InspectionAnalytics";
 
+import AIExecutiveSummary from "@/components/dashboard/AIExecutiveSummary";
+
 export default async function DashboardPage() {
   const supabase = await createClient();
-
+  
   const { data: org, error: orgError } = await supabase
     .from("organizations")
     .select("*")
@@ -26,7 +28,8 @@ export default async function DashboardPage() {
       </DashboardLayout>
     );
   }
-  const { data: inspectionsData } = await supabase
+
+    const { data: inspectionsData } = await supabase
   .from("inspections")
   .select("*")
   .eq("organization_id", orgId);
@@ -131,11 +134,9 @@ export default async function DashboardPage() {
           </ModuleCard>
 
           <ModuleCard title="AI Executive Summary" description="Өнөөдрийн товч дүгнэлт">
-            <div className="space-y-3 text-sm text-slate-700">
-              <p>• Нийт {totalInspections} хяналт шалгалт бүртгэлтэй байна.</p>
-              <p>• Нийт {totalFindings} зөрчил илэрсэн байна.</p>
-              <p>• Журмын дундаж хэрэгжилт {avgCompliance}% байна.</p>
-              <p>• Өндөр эрсдэлтэй {highRisk} журам байна.</p>
+            <AIExecutiveSummary />
+            <div className="whitespace-pre-wrap text-sm">
+             
             </div>
           </ModuleCard>
         </div>

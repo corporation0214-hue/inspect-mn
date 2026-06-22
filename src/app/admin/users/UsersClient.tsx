@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import UserCard from "@/components/admin/UserCard";
 import UserEditModal from "@/components/admin/UserEditModal";
 import UserCreateModal from "@/components/admin/UserCreateModal";
+import TelegramUserEditModal from "@/components/admin/TelegramUserEditModal";
 
 export default function UsersClient({
   users,
@@ -13,6 +14,9 @@ export default function UsersClient({
   telegramUsers: any[];
 }) {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [selectedTelegramUser, setSelectedTelegramUser] = useState<any | null>(
+  null
+);
   const [filter, setFilter] = useState("all");
 
   const filteredUsers = useMemo(() => {
@@ -196,6 +200,7 @@ export default function UsersClient({
           <th className="border px-4 py-3 text-left">Position</th>
           <th className="border px-4 py-3 text-left">Status</th>
           <th className="border px-4 py-3 text-left">Created</th>
+          <th className="border px-4 py-3 text-left">Action</th>
         </tr>
       </thead>
 
@@ -232,16 +237,29 @@ export default function UsersClient({
             <td className="border px-4 py-3">
               {user.created_at ? String(user.created_at).slice(0, 16) : "-"}
             </td>
+            <td className="border px-4 py-3">
+              <button
+                onClick={() => setSelectedTelegramUser(user)}
+                className="rounded-lg border px-3 py-1 hover:bg-slate-100"
+              >
+                Edit
+              </button>
+            </td>
           </tr>
-        ))}
-
+          
+        ))
+        }
+        
         {telegramUsers.length === 0 && (
           <tr>
             <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
               Telegram хэрэглэгч олдсонгүй.
             </td>
           </tr>
+          
         )}
+
+        
       </tbody>
     </table>
   </div>
@@ -266,6 +284,15 @@ export default function UsersClient({
           />
         )}      
 
+        {selectedTelegramUser && (
+          <TelegramUserEditModal
+            user={selectedTelegramUser}
+            onClose={() => {
+              setSelectedTelegramUser(null);
+              window.location.reload();
+            }}
+          />
+        )}
     </div>
   );
 }

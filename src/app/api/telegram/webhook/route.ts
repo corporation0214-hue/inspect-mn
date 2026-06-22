@@ -267,6 +267,7 @@ export async function POST(req: Request) {
 /voice [текст] - Employee Voice илгээх
 /risk - эрсдэлийн товч шинжилгээ
 /report - товч тайлан
+/anonymous [текст] - anonymous employee voice
 
 Мөн шууд асуулт бичиж болно:
 Өндөр эрсдэлтэй 5 зөрчил харуул
@@ -286,6 +287,7 @@ export async function POST(req: Request) {
 /risk
 /report
 /profile
+/anonymous [текст] - нэргүй санал, эрсдэл илгээх
 
 Шууд асуулт:
 Өндөр эрсдэлтэй 5 зөрчил харуул
@@ -336,6 +338,73 @@ Telegram ID: ${telegramId}
         chatId,
         "INSPECT.MN-ийн өнөөдрийн товч удирдлагын тайлан гарга. Inspection, Compliance, R&D, Employee Voice, өндөр эрсдэлийг тусга.",
         role
+      );
+
+      return NextResponse.json({ ok: true });
+    }
+
+    if (text.startsWith("/anonymous")) {
+      const voiceText = text.replace("/anonymous", "").trim();
+
+      if (!voiceText) {
+        await sendTelegramMessage(
+          chatId,
+          `
+    <b>Anonymous Employee Voice</b>
+
+    Илгээх жишээ:
+    /anonymous Агуулахын гэрэлтүүлэг хангалтгүй байна
+
+    Таны нэр CEO болон admin-д харагдахгүй.
+    `
+        );
+
+        return NextResponse.json({ ok: true });
+      }
+
+      const classified = classifyVoice(voiceText);
+
+      const { error } = await supabase.from("employee_voice").insert({
+        title: voiceText.slice(0, 80),
+        description: voiceText,
+        type: classified.type,
+        category: classified.category,
+        status: "new",
+        priority: classified.priority,
+        department: tgUser?.department || null,
+        assigned_to: null,
+
+        submitted_by: "anonymous",
+        submitted_name: "Anonymous",
+        telegram_id: null,
+        role: "anonymous",
+        source: "telegram",
+
+        is_anonymous: true,
+        voice_date: new Date().toISOString().slice(0, 10),
+      });
+
+      if (error) {
+        await sendTelegramMessage(
+          chatId,
+          `Anonymous Voice хадгалахад алдаа гарлаа: ${escapeTelegramHtml(
+            error.message
+          )}`
+        );
+
+        return NextResponse.json({ ok: true });
+      }
+
+      await sendTelegramMessage(
+        chatId,
+        `
+    ✅ <b>Anonymous Employee Voice бүртгэгдлээ</b>
+
+    Төрөл: ${escapeTelegramHtml(classified.category)}
+    Priority: ${escapeTelegramHtml(classified.priority)}
+
+    Таны нэр хадгалагдахгүй.
+    `
       );
 
       return NextResponse.json({ ok: true });

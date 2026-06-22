@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const chatId = "YOUR_TELEGRAM_CHAT_ID";
+    const chatId = "1383723364";
 
     await sendTelegramMessage(chatId, "✅ INSPECT.MN Telegram test message");
 

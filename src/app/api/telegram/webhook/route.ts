@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    const chatId = String(message.chat.id);
+    const chatId = "987654321";
     const telegramId = String(message.from.id);
     const username = message.from.username || "";
     const fullName = [message.from.first_name, message.from.last_name]

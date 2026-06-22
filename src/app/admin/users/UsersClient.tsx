@@ -27,7 +27,7 @@ export default function UsersClient({ users }: { users: any[] }) {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <UserCard title="Нийт хэрэглэгч" value={totalUsers} />
         <UserCard title="Идэвхтэй" value={activeUsers} color="text-green-600" />
         <UserCard title="Manager" value={managers} color="text-blue-600" />

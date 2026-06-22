@@ -107,7 +107,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
         </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
         <VoiceKpiCard
             title="Нийт бүртгэл"
             subtitle="Ажилтны нийт санал, гомдол"
@@ -289,7 +289,7 @@ function VoiceKpiCard({
   onExpand: () => void;
 }) {
   return (
-    <div className="relative rounded-2xl border bg-white p-5">
+    <div className="relative rounded-xl border bg-white p-4 shadow-sm">
       <button
         onClick={onExpand}
         className="absolute right-4 top-4 rounded-lg border px-2 py-1 text-xs hover:bg-slate-100"
@@ -301,10 +301,10 @@ function VoiceKpiCard({
       <p className="pr-10 text-lg font-bold">{title}</p>
       <p className="text-sm text-slate-500">{subtitle}</p>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 text-center text-sm">
+      <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-2 text-center text-xs">
         <div>
           <p className="text-slate-500">Нийт</p>
-          <p className={`text-2xl font-bold ${color}`}>{value}</p>
+          <p className={`text-xl font-bold ${color}`}>{value}</p>
         </div>
         <div>
           <p className="text-slate-500">Хувь</p>

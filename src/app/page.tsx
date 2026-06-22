@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -14,22 +15,13 @@ import {
 export default function HomePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#030712] text-white">
-      <div className="home-bg">
-        <div className="home-gradient" />
-        <div className="home-grid" />
-
-        <span className="home-orb orb-a" />
-        <span className="home-orb orb-b" />
-        <span className="home-orb orb-c" />
-
-        <span className="home-particle p-a" />
-        <span className="home-particle p-b" />
-        <span className="home-particle p-c" />
-        <span className="home-particle p-d" />
-        <span className="home-particle p-e" />
-        <span className="home-particle p-f" />
-
-        <span className="home-scan" />
+      <div className="inspect-animated-bg">
+        <div className="inspect-gradient" />
+        <div className="inspect-grid" />
+        <span className="inspect-orb inspect-orb-a" />
+        <span className="inspect-orb inspect-orb-b" />
+        <span className="inspect-orb inspect-orb-c" />
+        <span className="inspect-scan" />
       </div>
 
       <header className="relative z-10 border-b border-white/10 bg-white/5 backdrop-blur-md">
@@ -59,7 +51,7 @@ export default function HomePage() {
       </header>
 
       <section className="relative z-10 mx-auto grid min-h-[calc(100vh-80px)] max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-2">
-        <div>
+        <div className="inspect-fade-up">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-cyan-400/10 px-5 py-2 text-sm text-cyan-300">
             <Sparkles size={16} />
             AI-driven Governance, Risk & Compliance Platform
@@ -101,8 +93,8 @@ export default function HomePage() {
         </div>
 
         <div className="relative flex justify-center">
-          <div className="ai-orb-home">
-            <div className="ai-core-home">
+          <div className="inspect-ai-orb">
+            <div className="inspect-ai-core">
               <Bot size={88} />
             </div>
           </div>
@@ -119,192 +111,6 @@ export default function HomePage() {
           <ModuleCard icon={<Bot />} title="AI Assistant" />
         </div>
       </section>
-
-      <style jsx global>{`
-        .home-bg {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
-          pointer-events: none;
-        }
-
-        .home-gradient {
-          position: absolute;
-          inset: -35%;
-          background:
-            radial-gradient(circle at 18% 28%, rgba(6, 182, 212, 0.42), transparent 28%),
-            radial-gradient(circle at 82% 18%, rgba(147, 51, 234, 0.42), transparent 30%),
-            radial-gradient(circle at 52% 78%, rgba(37, 99, 235, 0.42), transparent 35%);
-          animation: homeGradientMove 8s ease-in-out infinite alternate;
-        }
-
-        .home-grid {
-          position: absolute;
-          inset: 0;
-          background-image:
-            linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px);
-          background-size: 64px 64px;
-          animation: homeGridMove 5s linear infinite;
-          opacity: 0.4;
-        }
-
-        .home-orb {
-          position: absolute;
-          border-radius: 9999px;
-          filter: blur(60px);
-          opacity: 0.55;
-          animation: homeOrbFloat 6s ease-in-out infinite;
-        }
-
-        .orb-a {
-          width: 340px;
-          height: 340px;
-          left: -90px;
-          top: 18%;
-          background: rgba(6, 182, 212, 0.65);
-        }
-
-        .orb-b {
-          width: 460px;
-          height: 460px;
-          right: -140px;
-          top: 10%;
-          background: rgba(147, 51, 234, 0.6);
-          animation-delay: 1.5s;
-        }
-
-        .orb-c {
-          width: 400px;
-          height: 400px;
-          left: 35%;
-          bottom: -160px;
-          background: rgba(37, 99, 235, 0.6);
-          animation-delay: 3s;
-        }
-
-        .home-particle {
-          position: absolute;
-          width: 7px;
-          height: 7px;
-          border-radius: 9999px;
-          background: #22d3ee;
-          box-shadow: 0 0 20px #22d3ee;
-          animation: homeParticleMove 6s linear infinite;
-        }
-
-        .p-a { left: 8%; top: 85%; animation-delay: 0s; }
-        .p-b { left: 22%; top: 75%; animation-delay: 1s; }
-        .p-c { left: 40%; top: 90%; animation-delay: 2s; }
-        .p-d { left: 58%; top: 80%; animation-delay: 3s; }
-        .p-e { left: 74%; top: 88%; animation-delay: 4s; }
-        .p-f { left: 90%; top: 72%; animation-delay: 5s; }
-
-        .home-scan {
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: -20%;
-          height: 180px;
-          background: linear-gradient(
-            to bottom,
-            transparent,
-            rgba(34, 211, 238, 0.18),
-            transparent
-          );
-          animation: homeScanMove 4s linear infinite;
-        }
-
-        .ai-orb-home {
-          width: 360px;
-          height: 360px;
-          border-radius: 9999px;
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background:
-            radial-gradient(circle, rgba(34, 211, 238, 0.3), transparent 55%),
-            linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(168, 85, 247, 0.3));
-          border: 1px solid rgba(34, 211, 238, 0.45);
-          box-shadow:
-            0 0 90px rgba(34, 211, 238, 0.45),
-            inset 0 0 70px rgba(99, 102, 241, 0.35);
-          animation: aiOrbFloatHome 5s ease-in-out infinite;
-        }
-
-        .ai-orb-home::before,
-        .ai-orb-home::after {
-          content: "";
-          position: absolute;
-          inset: -28px;
-          border-radius: 9999px;
-          border: 1px solid rgba(34, 211, 238, 0.35);
-          animation: aiOrbitHome 8s linear infinite;
-        }
-
-        .ai-orb-home::after {
-          inset: -55px;
-          border-color: rgba(168, 85, 247, 0.35);
-          animation-duration: 12s;
-          animation-direction: reverse;
-        }
-
-        .ai-core-home {
-          width: 150px;
-          height: 150px;
-          border-radius: 36px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          background: linear-gradient(135deg, #2563eb, #06b6d4, #9333ea);
-          box-shadow: 0 0 55px rgba(34, 211, 238, 0.8);
-          animation: aiCorePulseHome 3s ease-in-out infinite;
-        }
-
-        @keyframes homeGradientMove {
-          0% { transform: translate3d(-4%, -3%, 0) scale(1); }
-          50% { transform: translate3d(5%, 4%, 0) scale(1.1); }
-          100% { transform: translate3d(-2%, 5%, 0) scale(1.04); }
-        }
-
-        @keyframes homeGridMove {
-          from { background-position: 0 0; }
-          to { background-position: 64px 64px; }
-        }
-
-        @keyframes homeOrbFloat {
-          0%, 100% { transform: translateY(0) translateX(0) scale(1); }
-          50% { transform: translateY(-55px) translateX(45px) scale(1.15); }
-        }
-
-        @keyframes homeParticleMove {
-          0% { transform: translateY(0) translateX(0); opacity: 0; }
-          15% { opacity: 1; }
-          100% { transform: translateY(-620px) translateX(160px); opacity: 0; }
-        }
-
-        @keyframes homeScanMove {
-          from { transform: translateY(0); }
-          to { transform: translateY(145vh); }
-        }
-
-        @keyframes aiOrbFloatHome {
-          0%, 100% { transform: translateY(0) scale(1); }
-          50% { transform: translateY(-20px) scale(1.04); }
-        }
-
-        @keyframes aiOrbitHome {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
-        @keyframes aiCorePulseHome {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 45px rgba(34, 211, 238, 0.7); }
-          50% { transform: scale(1.06); box-shadow: 0 0 80px rgba(168, 85, 247, 0.9); }
-        }
-      `}</style>
     </main>
   );
 }

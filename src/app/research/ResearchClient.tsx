@@ -76,7 +76,7 @@ export default function ResearchClient({
         </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+      <div className="report-summary-grid grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {[
           {
             key: "total",

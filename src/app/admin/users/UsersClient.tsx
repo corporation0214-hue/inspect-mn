@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import UserCard from "@/components/admin/UserCard";
 import UserEditModal from "@/components/admin/UserEditModal";
+import UserCreateModal from "@/components/admin/UserCreateModal";
 
 export default function UsersClient({ users }: { users: any[] }) {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
@@ -17,7 +18,8 @@ export default function UsersClient({ users }: { users: any[] }) {
   const activeUsers = users.filter((x) => x.status === "active").length;
   const managers = users.filter((x) => x.role === "manager").length;
   const admins = users.filter((x) => x.role === "admin").length;
-
+  const [showCreate,setShowCreate] = useState(false);
+  
   return (
     <div className="space-y-6">
       <div>
@@ -26,7 +28,19 @@ export default function UsersClient({ users }: { users: any[] }) {
           Хэрэглэгч, эрх, алба нэгж, төлөвийн удирдлага
         </p>
       </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="rounded-xl bg-blue-600 px-4 py-2 text-white"
+        >
+          + User нэмэх
+        </button>
 
+        <UserCreateModal
+          open={showCreate}
+          onClose={() => setShowCreate(false)}
+          onSuccess={() => window.location.reload()}
+        />
+        
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <UserCard title="Нийт хэрэглэгч" value={totalUsers} />
         <UserCard title="Идэвхтэй" value={activeUsers} color="text-green-600" />
@@ -136,16 +150,26 @@ export default function UsersClient({ users }: { users: any[] }) {
           </table>
         </div>
       </div>
-
-      {selectedUser && (
-        <UserEditModal
-          user={selectedUser}
-          onClose={() => {
-            setSelectedUser(null);
-            location.reload();
+      
+        <UserCreateModal
+          open={showCreate}
+          onClose={() => setShowCreate(false)}
+          onSuccess={() => {
+            setShowCreate(false);
+            window.location.reload();
           }}
         />
-      )}
+      
+        {selectedUser && (
+          <UserEditModal
+            user={selectedUser}
+            onClose={() => {
+              setSelectedUser(null);
+              window.location.reload();
+            }}
+          />
+        )}      
+
     </div>
   );
 }

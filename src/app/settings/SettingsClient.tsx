@@ -20,13 +20,15 @@ export default function SettingsClient({
   const [language, setLanguage] = useState(profile?.language || "mn");
   const [theme, setTheme] = useState(profile?.theme || "light");
     useEffect(() => {
-        if (theme === "dark") {
-            document.documentElement.classList.add("dark");
-            localStorage.setItem("theme", "dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-            localStorage.setItem("theme", "light");
-        }
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("theme", "dark");
+        document.cookie = "theme=dark; path=/; max-age=31536000";
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("theme", "light");
+        document.cookie = "theme=light; path=/; max-age=31536000";
+      }
     }, [theme]);
 
   const [emailNotifications, setEmailNotifications] = useState(

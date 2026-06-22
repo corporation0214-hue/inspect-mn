@@ -10,6 +10,7 @@ export default function UserEditModal({
   user: any;
   onClose: () => void;
 }) {
+  if (!user) return null;
   const supabase = createClient();
 
   const [fullName, setFullName] = useState(user?.full_name || "");
@@ -23,6 +24,7 @@ export default function UserEditModal({
     const { error } = await supabase
       .from("profiles")
       .update({
+        id: user.id,
         full_name: fullName,
         role,
         department,

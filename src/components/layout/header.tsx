@@ -13,6 +13,30 @@ export default function Header({ onOpenMobile }: Props) {
 
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      setUser(user);
+
+      if (user?.id) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        setProfile(data);
+      }
+    }
+
+    loadUser();
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -70,15 +94,17 @@ export default function Header({ onOpenMobile }: Props) {
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-300 font-bold"
           >
-            M
+            {(profile?.full_name || user?.email || "U").slice(0, 1).toUpperCase()}
           </button>
 
           {showUserMenu && (
             <div className="absolute right-0 z-50 mt-2 w-72 rounded-2xl border bg-white shadow-xl">
               <div className="border-b p-4">
-                <div className="font-bold">Munh So</div>
+                <div className="font-bold">
+                  {profile?.full_name || user?.email || "User"}
+                </div>
                 <div className="text-sm text-slate-500">
-                  munh.so@gmail.com
+                  {user?.email || "-"}
                 </div>
               </div>
 

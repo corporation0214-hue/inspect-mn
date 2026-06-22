@@ -2,6 +2,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { createClient } from "@/lib/supabase/server";
 import UsersClient from "./UsersClient";
 import { redirect } from "next/navigation";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 export default async function UsersPage() {
   const supabase = await createClient();
@@ -10,9 +11,7 @@ export default async function UsersPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -24,7 +23,12 @@ export default async function UsersPage() {
     redirect("/dashboard");
   }
 
-  const { data: users } = await supabase
+  const adminSupabase = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data: users } = await adminSupabase
     .from("profiles")
     .select("*")
     .order("created_at", { ascending: false });

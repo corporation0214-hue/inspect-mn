@@ -137,7 +137,7 @@ export default async function DashboardPage() {
               findings={findings}
             />
           </ModuleCard>
-           <ModuleCard>
+           <ModuleCard title="" description="">
             <ComplianceChart items={complianceItems || []} />
           </ModuleCard>
         </div>

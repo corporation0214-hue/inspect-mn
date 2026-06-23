@@ -1,13 +1,33 @@
 export default function RiskMatrix({ findings = [], voices = [] }: any) {
+  const CLOSED_STATUSES = [
+    "resolved",
+    "closed",
+    "fixed",
+    "mitigated",
+    "reviewed",
+  ];
+
   const risks = [
-    ...findings.map((x: any) => ({
-      level: String(x.risk_level || x.priority || "medium").toLowerCase(),
-      title: x.title || x.name || "Finding",
-      source: "Finding",
-      status: x.status || "-",
-    })),
+    ...findings
+      .filter(
+        (x: any) =>
+          !CLOSED_STATUSES.includes(String(x.status || "").toLowerCase())
+      )
+      .map((x: any) => ({
+        level: String(
+          x.severity || x.risk_level || x.priority || "medium"
+        ).toLowerCase(),
+        title: x.title || x.name || "Finding",
+        source: "Finding",
+        status: x.status || "-",
+      })),
+
     ...voices
-      .filter((x: any) => x.type === "risk" || x.category === "Эрсдэл")
+      .filter(
+        (x: any) =>
+          (x.type === "risk" || x.category === "Эрсдэл") &&
+          !CLOSED_STATUSES.includes(String(x.status || "").toLowerCase())
+      )
       .map((x: any) => ({
         level: String(x.priority || "medium").toLowerCase(),
         title: x.title || "Employee Voice Risk",
@@ -74,7 +94,7 @@ export default function RiskMatrix({ findings = [], voices = [] }: any) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold">Эрсдэлийн матриц</h2>
+      <h2 className="text-xl font-bold">Нээлттэй эрсдэлийн матриц</h2>
       <p className="text-sm text-slate-500 dark:text-slate-400">
         Findings + Employee Voice risk
       </p>

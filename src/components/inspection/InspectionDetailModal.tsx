@@ -51,7 +51,12 @@ export default function InspectionDetailModal({
     status?: string;
     owner?: string;
     due_date?: string;
-    };
+
+    resolution_note?: string;
+    verified_by?: string;
+    verified_at?: string;
+    closed_at?: string;
+  };
 
     const [findings, setFindings] = useState<Finding[]>([]);
     const [showFindingModal, setShowFindingModal] = useState(false);
@@ -69,6 +74,64 @@ export default function InspectionDetailModal({
     }
 
     setFindings(data ?? []);
+    }
+
+    async function updateFindingStatus(findingId: string, newStatus: string) {
+      const payload: any = {
+        status: newStatus,
+      };
+
+      if (newStatus === "resolved") {
+        payload.verified_at = new Date().toISOString();
+      }
+
+      if (newStatus === "closed") {
+        payload.verified_at = new Date().toISOString();
+        payload.closed_at = new Date().toISOString();
+      }
+
+      const { error } = await supabase
+        .from("findings")
+        .update(payload)
+        .eq("id", findingId);
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      await loadFindings();
+      router.refresh();
+    }
+
+    async function updateFindingStatus(
+      findingId: string,
+      newStatus: string
+    ) {
+      const payload: any = {
+        status: newStatus,
+      };
+
+      if (newStatus === "resolved") {
+        payload.verified_at = new Date().toISOString();
+      }
+
+      if (newStatus === "closed") {
+        payload.closed_at = new Date().toISOString();
+      }
+
+      const { error } = await supabase
+        .from("findings")
+        .update(payload)
+        .eq("id", findingId);
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      loadFindings();
+      router.refresh();
     }
 
     useEffect(() => {
@@ -222,12 +285,46 @@ export default function InspectionDetailModal({
                 )}
 
                 {findings.map((f) => (
-                <div key={f.id} className="rounded-xl border p-3">
-                    <div className="font-semibold">{f.title}</div>
-                    <div className="text-sm text-slate-500">
-                    Эрсдэл: {f.severity || "-"} · Төлөв: {f.status || "-"}
+                  <div key={f.id} className="rounded-xl border p-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="font-semibold">{f.title}</div>
+
+                        <div className="text-sm text-slate-500">
+                          Эрсдэл: {f.severity || "-"} · Хариуцагч: {f.owner || "-"}
+                        </div>
+
+                        {f.description && (
+                          <p className="mt-1 text-sm text-slate-600">{f.description}</p>
+                        )}
+
+                        {f.verified_at && (
+                          <p className="mt-1 text-xs text-green-700">
+                            Баталгаажсан: {String(f.verified_at).slice(0, 10)}
+                          </p>
+                        )}
+
+                        {f.closed_at && (
+                          <p className="mt-1 text-xs text-blue-700">
+                            Хаагдсан: {String(f.closed_at).slice(0, 10)}
+                          </p>
+                        )}
+                      </div>
+
+                      <select
+                        value={f.status || "open"}
+                        onChange={(e) => updateFindingStatus(f.id, e.target.value)}
+                        className="rounded-lg border px-3 py-2 text-sm"
+                      >
+                        <option value="open">Нээлттэй</option>
+                        <option value="planned">Арга хэмжээ төлөвлөсөн</option>
+                        <option value="in_progress">Засвар хийгдэж байна</option>
+                        <option value="verification">Баталгаажуулалтад</option>
+                        <option value="resolved">Арилсан</option>
+                        <option value="closed">Хаагдсан</option>
+                      </select>
                     </div>
-                </div>
+                  </div>
                 ))}
             </div>
             </div>

@@ -87,6 +87,8 @@ export default function InspectionClient({
       ? inspections
       : inspections.filter((x) => x.type === filter || x.category === filter);
 
+  
+
   function getPlanCount(type: string) {
     return plans.find((p) => p.inspection_type === type)?.planned_count ?? 0;
   }
@@ -98,6 +100,35 @@ export default function InspectionClient({
   function getFindingsByType(type: string) {
     const typeInspectionIds = getInspectionsByType(type).map((x) => x.id);
     return findings.filter((f) => typeInspectionIds.includes(f.inspection_id || ""));
+  }
+
+  function normalizeRisk(value: any) {
+      return String(value || "").toLowerCase();
+    }
+
+    function riskLabel(value: string) {
+      if (value === "critical") return "Ноцтой";
+      if (value === "high") return "Өндөр";
+      if (value === "medium") return "Дунд";
+      if (value === "low") return "Бага";
+      return "-";
+    }
+
+  function getInspectionRiskLevel(inspectionId: string) {
+    const inspectionFindings = findings.filter(
+      (f) => f.inspection_id === inspectionId
+    );
+
+    if (!inspectionFindings.length) return "-";
+
+    const priorities = inspectionFindings.map((f) =>
+      (f.severity || "").toLowerCase()
+    );
+
+    if (priorities.includes("critical")) return "Critical";
+    if (priorities.includes("high")) return "High";
+    if (priorities.includes("medium")) return "Medium";
+    return "Low";
   }
 
   return (
@@ -271,7 +302,16 @@ export default function InspectionClient({
            <table className="min-w-[1100px] w-full text-sm">
               <thead className="bg-slate-100">
                 <tr>
-                  {["Нэр", "Төрөл", "Төлөв", "Ангилал", "Огноо", "Бүртгэсэн", "Гүйцэтгэсэн"].map(
+                  {[
+                      "Нэр",
+                      "Төрөл",
+                      "Төлөв",
+                      "Эрсдэлийн зэрэг",
+                      "Ангилал",
+                      "Огноо",
+                      "Бүртгэсэн",
+                      "Гүйцэтгэсэн",
+                    ].map(
                     (col) => (
                       <th key={col} className="border px-4 py-3 text-left font-medium">
                         {col}
@@ -291,6 +331,7 @@ export default function InspectionClient({
                     <td className="border px-4 py-3">{x.title}</td>
                     <td className="border px-4 py-3">{x.type}</td>
                     <td className="border px-4 py-3">{x.status}</td>
+                    <td className="border px-4 py-3">{getInspectionRiskLevel(x.id)}</td>
                     <td className="border px-4 py-3">{x.category}</td>
                     <td className="border px-4 py-3">{x.inspection_date || "-"}</td>
                     <td className="border px-4 py-3">{x.registered_by || "-"}</td>

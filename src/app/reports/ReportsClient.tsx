@@ -913,7 +913,7 @@ export default function ReportsClient({
           >
             <option value="all">Бүх модуль</option>
             <option value="Inspection">Хяналт, шалгалт</option>
-            <option value="Finding">Илрүүлэлт</option>
+            <option value="Finding">Зөрчил</option>
             <option value="Compliance">Нийцэл</option>
             <option value="R&D">Судалгаа & Хөгжүүлэлт</option>
             <option value="Employee Voice">Дуу хоолой</option>

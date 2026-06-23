@@ -131,7 +131,7 @@ function classifyVoice(text: string) {
   }
 
   return {
-    type: "suggestion",
+    type: "Санал",
     category: "Санал",
     priority: "medium",
   };

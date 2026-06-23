@@ -94,11 +94,45 @@ export default function DashboardClient({
   ]);
 
   const totalInspections = filtered.inspections.length;
+  const plannedInspections = filtered.inspections.filter(
+    (x: any) =>
+      String(x.category || "").toLowerCase() === "planned" ||
+      String(x.inspection_type || "").toLowerCase() === "planned"
+  ).length;
+
+  const unplannedInspections = filtered.inspections.filter(
+    (x: any) =>
+      String(x.category || "").toLowerCase() === "unplanned" ||
+      String(x.inspection_type || "").toLowerCase() === "unplanned"
+  ).length;
   const totalFindings = filtered.findings.length;
 
-  const highRisk = filtered.findings.filter((x: any) =>
-    ["high", "critical"].includes(String(x.risk_level || x.priority).toLowerCase())
-  ).length;
+  const CLOSED_STATUSES = ["resolved", "closed", "fixed", "mitigated", "reviewed"];
+
+  const activeFindings = filtered.findings.filter(
+    (x: any) => !CLOSED_STATUSES.includes(String(x.status || "").toLowerCase())
+  );
+
+  const activeVoiceRisks = filtered.employeeVoices.filter(
+    (x: any) =>
+      (String(x.type || "").toLowerCase() === "risk" ||
+        String(x.category || "") === "Эрсдэл") &&
+      !CLOSED_STATUSES.includes(String(x.status || "").toLowerCase())
+  );
+
+  const highRiskFindings = activeFindings.filter((x: any) =>
+    ["high", "critical"].includes(
+      String(x.severity || x.risk_level || x.priority || "").toLowerCase()
+    )
+  );
+
+  const highRiskVoices = activeVoiceRisks.filter((x: any) =>
+    ["high", "critical"].includes(
+      String(x.priority || x.severity || x.risk_level || "").toLowerCase()
+    )
+  );
+
+  const highRisk = highRiskFindings.length + highRiskVoices.length;
 
   const avgCompliance =
     filtered.complianceItems.length > 0
@@ -111,14 +145,13 @@ export default function DashboardClient({
       : 0;
 
   const closedActions = filtered.findings.filter((x: any) =>
-    ["closed", "fixed", "resolved", "completed"].includes(
-      String(x.status || "").toLowerCase()
-    )
+    ["resolved", "closed"].includes(String(x.status || "").toLowerCase())
   ).length;
 
   const actionRate =
     totalFindings > 0 ? Math.round((closedActions / totalFindings) * 100) : 0;
 
+  const openFindings = activeFindings.length;
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -181,15 +214,13 @@ export default function DashboardClient({
         <KpiCard
           title="Хяналт шалгалт"
           value={totalInspections}
-          note={`Төлөвлөгөөт: ${
-            filtered.inspections.filter((x: any) => x.type === "planned").length
-          }`}
+          note={`Төлөвлөгөөт: ${plannedInspections} · Төлөвлөгөөт бус: ${unplannedInspections}`}
         />
 
         <KpiCard
           title="Илэрсэн зөрчил"
           value={totalFindings}
-          note={`Нээлттэй: ${totalFindings - closedActions}`}
+          note={`Нээлттэй: ${openFindings}`}
           color="text-red-600"
         />
 
@@ -221,7 +252,7 @@ export default function DashboardClient({
         <KpiCard
           title="Өндөр эрсдэл"
           value={highRisk}
-          note="High / Critical"
+          note={`Findings: ${highRiskFindings.length} · Voice: ${highRiskVoices.length}`}
           color="text-orange-600"
         />
       </div>

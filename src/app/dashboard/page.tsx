@@ -13,6 +13,12 @@ export default async function DashboardPage() {
 
   const orgId = org?.id ?? "";
 
+  const { data: riskPlans } = await supabase
+    .from("risk_action_plans")
+    .select("*")
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false });
+
   const [
     inspectionsRes,
     findingsRes,
@@ -37,7 +43,9 @@ export default async function DashboardPage() {
         complianceItems={complianceRes.data || []}
         employeeVoices={voiceRes.data || []}
         researchProjects={researchRes.data || []}
+        plans={riskPlans || []}
       />
+    
     </DashboardLayout>
   );
 }

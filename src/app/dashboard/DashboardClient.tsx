@@ -26,6 +26,7 @@ export default function DashboardClient({
   complianceItems,
   employeeVoices,
   researchProjects,
+  plans = [],
 }: any) {
   const today = new Date();
 
@@ -151,7 +152,18 @@ export default function DashboardClient({
   const actionRate =
     totalFindings > 0 ? Math.round((closedActions / totalFindings) * 100) : 0;
 
+
   const openFindings = activeFindings.length;
+
+  
+  const plannedHighRisk =
+    plans.filter(
+      (x:any)=>
+        ["high","critical"].includes(
+          String(x.risk_level || "").toLowerCase()
+        )
+    ).length;
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -250,11 +262,12 @@ export default function DashboardClient({
         />
 
         <KpiCard
-          title="Өндөр эрсдэл"
-          value={highRisk}
-          note={`Findings: ${highRiskFindings.length} · Voice: ${highRiskVoices.length}`}
-          color="text-orange-600"
-        />
+  title="Өндөр эрсдэл"
+  value={highRisk}
+  note={`Findings: ${highRiskFindings.length} · Voice: ${highRiskVoices.length} · Төлөвлөгөөтэй: ${plannedHighRisk}`}
+  color="text-orange-600"
+/>
+    
       </div>
 
       <ModuleCard

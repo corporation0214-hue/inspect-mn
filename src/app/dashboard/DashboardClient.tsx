@@ -127,7 +127,7 @@ export default function DashboardClient({
             Ерөнхий самбар
           </h1>
           <p className="text-slate-500">
-            {org?.name || "Байгууллага"} — DB өгөгдөлтэй dashboard
+            {org?.name || "Байгууллага"} — Мэдээллийн хянах самбар
           </p>
         </div>
 
@@ -227,7 +227,7 @@ export default function DashboardClient({
       </div>
 
       <ModuleCard
-        title="AI Executive Summary"
+        title="AI удирдлагын товч дүгнэлт"
         description="Өнөөдрийн удирдлагын товч дүгнэлт"
       >
         <AIExecutiveSummary />
@@ -236,7 +236,7 @@ export default function DashboardClient({
       <div className="grid gap-4 xl:grid-cols-2">
         <ModuleCard
           title="Хяналт шалгалтын аналитик"
-          description="Төрөл, төлөвлөгөө, зөрчлийн харьцуулалт"
+            description="Төрөл, төлөвлөгөө"
         >
           <InspectionAnalytics
             inspections={filtered.inspections}
@@ -245,8 +245,8 @@ export default function DashboardClient({
         </ModuleCard>
 
         <ModuleCard
-          title="Журмын хэрэгжилт"
-          description="Алба хэлтсээр ангилсан дундаж хэрэгжилт"
+          title=""
+          description=""
         >
           <ComplianceChart items={filtered.complianceItems} />
         </ModuleCard>
@@ -254,15 +254,15 @@ export default function DashboardClient({
 
       <div className="grid gap-4 xl:grid-cols-2">
         <ModuleCard
-          title="Employee Voice"
-          description="Санал, гомдол, эрсдэлийн бүтэц"
+          title=""
+          description=""
         >
           <EmployeeVoiceChart voices={filtered.employeeVoices} />
         </ModuleCard>
 
         <ModuleCard
-          title="Эрсдэлийн матриц"
-          description="Findings + Employee Voice risk"
+          title=""
+          description=""
         >
           <RiskMatrix
             findings={filtered.findings}

@@ -105,7 +105,7 @@ export default function InspectionClient({
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold">Inspection Center</h1>
+            <h1 className="text-3xl font-bold">Хяналт, шалгалт</h1>
             <p className="text-slate-500">
               Төлөвлөгөөт, төлөвлөгөөт бус, хамтарсан хяналт шалгалт
             </p>

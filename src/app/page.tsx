@@ -107,8 +107,8 @@ export default function HomePage() {
           <ModuleCard icon={<FileSearch />} title="Журмын хэрэгжилт" />
           <ModuleCard icon={<ChartNoAxesCombined />} title="Эрсдэлийн удирдлага" />
           <ModuleCard icon={<GraduationCap />} title="Сургалт" />
-          <ModuleCard icon={<Building2 />} title="Employee Voice" />
-          <ModuleCard icon={<Bot />} title="AI Assistant" />
+          <ModuleCard icon={<Building2 />} title="Дуу хоолой" />
+          <ModuleCard icon={<Bot />} title="AI Туслах" />
         </div>
       </section>
     </main>

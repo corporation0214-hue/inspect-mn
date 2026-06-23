@@ -20,7 +20,7 @@ const typeLabels: Record<string, string> = {
 function normalizeVoiceType(value: any) {
   const v = String(value || "").trim().toLowerCase();
 
-  if (v === "suggestion" || v === "санал") return "suggestion";
+  if (v === "Санал" || v === "санал") return "Санал";
   if (v === "complaint" || v === "гомдол") return "complaint";
   if (v === "risk" || v === "эрсдэл") return "risk";
   if (v === "violation" || v === "зөрчил") return "violation";
@@ -104,7 +104,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Employee Voice</h1>
+          <h1 className="text-3xl font-bold">Ажилтны дуу хоолой</h1>
           <p className="text-slate-500">
             Ажилтны санал, гомдол, эрсдэл, нууц мэдээллийн бүртгэл
           </p>
@@ -188,7 +188,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
         <div className="mb-4 flex flex-wrap gap-2">
           {[
             ["all", "Бүгд"],
-            ["suggestion", "Санал"],
+            ["Санал", "Санал"],
             ["complaint", "Гомдол"],
             ["risk", "Эрсдэл"],
             ["violation", "Зөрчил"],
@@ -208,7 +208,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
           ))}
         </div>
 
-        <h2 className="mb-4 text-xl font-bold">Employee Voice Registry</h2>
+        <h2 className="mb-4 text-xl font-bold">Ажилны дуу хоолойн бүртгэл</h2>
 
         <div className="max-h-[520px] overflow-auto rounded-xl border">
           <table className="w-full min-w-[1000px] text-sm">

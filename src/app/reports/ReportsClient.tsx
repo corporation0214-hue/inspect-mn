@@ -113,7 +113,7 @@ export default function ReportsClient({
 
   const suggestionCount =
     employeeVoices.filter(
-      (x) => x.category === "suggestion"
+      (x) => x.category === "Санал"
     ).length;
 
   const complaintCount =
@@ -912,11 +912,11 @@ export default function ReportsClient({
             onChange={(e) => setModuleFilter(e.target.value)}
           >
             <option value="all">Бүх модуль</option>
-            <option value="Inspection">Inspection</option>
-            <option value="Finding">Findings</option>
-            <option value="Compliance">Compliance</option>
-            <option value="R&D">Research & Development</option>
-            <option value="Employee Voice">Employee Voice</option>
+            <option value="Inspection">Хяналт, шалгалт</option>
+            <option value="Finding">Илрүүлэлт</option>
+            <option value="Compliance">Нийцэл</option>
+            <option value="R&D">Судалгаа & Хөгжүүлэлт</option>
+            <option value="Employee Voice">Дуу хоолой</option>
 
           </select>
 

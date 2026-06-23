@@ -53,7 +53,7 @@ export default function ComplianceClient({
     review: "Review шаардлагатай",
   };
 
-  const frameworks = ["ISO 9001", "ISO 14001", "ISO 45001", "MNS", "Internal Policy", "Government Regulation"];
+  const frameworks = ["ISO 9001", "ISO 14001", "ISO 45001", "MNS", "Дотоод бодлого, журам", "Хууль тогтоомж, зохицуулалт"];
 
   function frameworkScore(framework: string) {
     const list = items.filter((x) => x.framework === framework);
@@ -69,7 +69,7 @@ export default function ComplianceClient({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Compliance Center</h1>
+          <h1 className="text-3xl font-bold">Нийцлийн төв</h1>
           <p className="text-slate-500">Стандарт, журам, шаардлагын хэрэгжилт</p>
         </div>
 
@@ -101,7 +101,7 @@ export default function ComplianceClient({
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <ModuleCard title="Framework Compliance Score" description="ISO / MNS / Internal Policy хэрэгжилт">
+        <ModuleCard title="Нийцлийн үнэлгээ" description="ISO / MNS / Дотоод бодлого, журам хэрэгжилт">
           <div className="space-y-3">
             {frameworks.map((fw) => {
               const score = frameworkScore(fw);
@@ -123,7 +123,7 @@ export default function ComplianceClient({
           </div>
         </ModuleCard>
 
-        <ModuleCard title="Compliance Heat Map" description="Framework × Risk level">
+        <ModuleCard title="Нийцлийн эрсдэлийн зураглал" description="Шаардлага × Эрсдэлийн түвшин">
           <div className="overflow-x-auto rounded-xl border">
             <table className="w-full text-sm">
               <thead className="bg-slate-100">
@@ -149,7 +149,7 @@ export default function ComplianceClient({
         </ModuleCard>
       </div>
 
-      <ModuleCard title="Compliance Registry" description="Стандарт, журам, шаардлагын жагсаалт">
+      <ModuleCard title="Нийцлийн бүртгэл" description="Стандарт, журам, шаардлагын жагсаалт">
         
         <div className="mb-4 flex flex-wrap gap-3">
           <select

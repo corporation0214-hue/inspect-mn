@@ -193,8 +193,8 @@ export default function ComplianceItemModal({
             <option value="ISO 14001">ISO 14001</option>
             <option value="ISO 45001">ISO 45001</option>
             <option value="MNS">MNS</option>
-            <option value="Internal Policy">Internal Policy</option>
-            <option value="Government Regulation">Government Regulation</option>
+            <option value="Дотоод бодлого, журам">Internal Policy</option>
+            <option value="Хууль тогтоомж, зохицуулалт">Government Regulation</option>
           </select>
 
           <input

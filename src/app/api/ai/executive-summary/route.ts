@@ -24,7 +24,7 @@ export async function GET() {
     const prompt = `
     Та INSPECT.MN дотоод хяналтын удирдлагын AI зөвлөх.
 
-    Дараах бодит Supabase өгөгдөл дээр үндэслэн Dashboard-ийн Executive Summary гарга.
+    Дараах бодит DB өгөгдөл дээр үндэслэн Dashboard-ийн Удирдлагын товч мэдээлэл гарга.
 
     Inspection records:
     ${JSON.stringify(inspections.data || [])}

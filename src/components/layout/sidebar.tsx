@@ -4,15 +4,15 @@ import Link from "next/link";
 import { useState } from "react";
 
 const menus = [
-  { href: "/dashboard", label: "Dashboard", icon: "D" },
-  { href: "/inspection", label: "Inspection Center", icon: "I" },
-  { href: "/compliance", label: "Compliance Center", icon: "C" },
-  { href: "/research", label: "Research & Development", icon: "R" },
-  { href: "/reports", label: "Reports", icon: "RP" },
-  { href: "/voice", label: "Employee Voice", icon: "V" },
-  { href: "/ai", label: "AI Center", icon: "AI" },
-  { href: "/settings", label: "Settings", icon: "S" },
-  { label: "Admin Center", href: "/admin/users", icon: "A"},
+  { href: "/dashboard", label: "Ерөнхий самбар", icon: "D" },
+  { href: "/inspection", label: "Хяналт шалгалтын төв", icon: "I" },
+  { href: "/compliance", label: "Хууль, журмын нийцлийн төв", icon: "C" },
+  { href: "/research", label: "Судалгаа, хөгжлийн төв", icon: "R" },
+  { href: "/reports", label: "Тайлан, шинжилгээ", icon: "RP" },
+  { href: "/voice", label: "Ажилтны дуу хоолой", icon: "V" },
+  { href: "/ai", label: "AI туслах төв", icon: "AI" },
+  { href: "/settings", label: "Тохиргоо", icon: "S" },
+  { label: "Удирдлагын төв", href: "/admin/users", icon: "A"},
 ];
 
 type Props = {

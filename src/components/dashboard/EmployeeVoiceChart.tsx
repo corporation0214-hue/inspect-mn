@@ -1,7 +1,7 @@
 export default function EmployeeVoiceChart({ voices = [] }: any) {
   const rows = [
     {
-      type: "suggestion",
+      type: "Санал",
       label: "Санал",
       resultLabel: "Дэмжигдсэн",
       doneStatuses: ["approved", "supported", "accepted", "done", "closed"],
@@ -69,7 +69,7 @@ export default function EmployeeVoiceChart({ voices = [] }: any) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold">Employee Voice</h2>
+      <h2 className="text-xl font-bold">Ажилтны дуу хоолой</h2>
       <p className="text-sm text-slate-500 dark:text-slate-400">
         Санал, гомдол, эрсдэлийн бүртгэл ба шийдвэрлэлтийн үзүүлэлт
       </p>

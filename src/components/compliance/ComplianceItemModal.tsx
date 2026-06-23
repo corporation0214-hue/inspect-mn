@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { MAIN_DEPARTMENTS } from "@/lib/constants/departments";
 
 export default function ComplianceItemModal({
   item,
@@ -203,12 +204,18 @@ export default function ComplianceItemModal({
             onChange={(e)=>setClause(e.target.value)}
           />
 
-          <input
-            className="w-full rounded-lg border p-3"
-            placeholder="Хариуцсан хэлтэс"
+          <select
+            className="rounded-xl border p-3 dark:bg-slate-950"
             value={ownerDepartment}
-            onChange={(e)=>setOwnerDepartment(e.target.value)}
-          />
+            onChange={(e) => setOwnerDepartment(e.target.value)}
+          >
+            <option value="">Хариуцсан хэлтэс сонгох</option>
+            {MAIN_DEPARTMENTS.map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
 
           <label className="text-sm font-medium text-slate-700">
             Биелэлтийн %

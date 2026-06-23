@@ -5,6 +5,7 @@ import UserCard from "@/components/admin/UserCard";
 import UserEditModal from "@/components/admin/UserEditModal";
 import UserCreateModal from "@/components/admin/UserCreateModal";
 import TelegramUserEditModal from "@/components/admin/TelegramUserEditModal";
+import TelegramInviteModal from "@/components/admin/TelegramInviteModal";
 
 export default function UsersClient({
   users,
@@ -39,7 +40,8 @@ export default function UsersClient({
     (x) => x.role === "employee"
   ).length;
   const [showCreate,setShowCreate] = useState(false);
-  
+  const [showTelegramInvite, setShowTelegramInvite] = useState(false);
+
   return (
     <div className="space-y-6">
       <div>
@@ -188,6 +190,13 @@ export default function UsersClient({
     </div>
   </div>
 
+  <button
+    onClick={() => setShowTelegramInvite(true)}
+    className="rounded-xl bg-blue-600 px-4 py-2 text-white"
+  >
+    Invite Telegram Users
+  </button>
+
   <div className="max-h-[520px] overflow-auto rounded-xl border">
     <table className="w-full min-w-[1000px] text-sm">
       <thead className="sticky top-0 bg-slate-100">
@@ -292,6 +301,10 @@ export default function UsersClient({
               window.location.reload();
             }}
           />
+        )}
+
+        {showTelegramInvite && (
+          <TelegramInviteModal onClose={() => setShowTelegramInvite(false)} />
         )}
     </div>
   );

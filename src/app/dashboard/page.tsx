@@ -4,8 +4,10 @@ import ModuleCard from "@/components/dashboard/ModuleCard";
 import SimpleTable from "@/components/dashboard/SimpleTable";
 import { createClient } from "@/lib/supabase/server";
 import InspectionAnalytics from "@/components/dashboard/InspectionAnalytics";
-
 import AIExecutiveSummary from "@/components/dashboard/AIExecutiveSummary";
+import RiskMatrix from "@/components/dashboard/RiskMatrix";
+import ComplianceChart from "@/components/dashboard/ComplianceChart";
+import EmployeeVoiceChart from "@/components/dashboard/EmployeeVoiceChart";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -83,18 +85,31 @@ export default async function DashboardPage() {
   const highRisk =
     compliance?.filter((x) => x.risk_level === "high").length ?? 0;
 
+  const { data: dashboardFindings } = await supabase
+    .from("findings")
+    .select("*");
+
+  const { data: complianceItems } = await supabase
+    .from("compliance_items")
+    .select("*");
+
+  const { data: employeeVoices } = await supabase
+    .from("employee_voice")
+    .select("*");
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Ерөнхий самбар</h1>
-          <p className="text-slate-500">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+            Ерөнхий самбар
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400">
             {org?.name || "Байгууллага"} — Supabase өгөгдөлтэй dashboard
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <KpiCard title="Хяналт шалгалт" value={String(totalInspections)} />
           <KpiCard title="Илэрсэн зөрчил" value={String(totalFindings)} />
           <KpiCard title="Арга хэмжээний биелэлт" value={`${actionRate}%`} />
@@ -103,25 +118,15 @@ export default async function DashboardPage() {
           <KpiCard title="Өндөр эрсдэл" value={String(highRisk)} />
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-3">
-          <ModuleCard title="Эрсдэлийн матриц" description="Магадлал × Үр нөлөө">
-            <div className="grid grid-cols-5 gap-1">
-              {Array.from({ length: 25 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-12 rounded ${
-                    i > 18
-                      ? "bg-red-200"
-                      : i > 11
-                      ? "bg-orange-200"
-                      : i > 5
-                      ? "bg-yellow-200"
-                      : "bg-green-200"
-                  }`}
-                />
-              ))}
-            </div>
-          </ModuleCard>
+        <ModuleCard
+          title="AI Executive Summary"
+          description="Өнөөдрийн удирдлагын товч дүгнэлт"
+        >
+          <AIExecutiveSummary />
+        </ModuleCard>
+
+        <div className="grid gap-4 xl:grid-cols-2">
+          
 
           <ModuleCard
             title="Хяналт шалгалтын аналитик"
@@ -132,38 +137,24 @@ export default async function DashboardPage() {
               findings={findings}
             />
           </ModuleCard>
-
-          <ModuleCard title="AI Executive Summary" description="Өнөөдрийн товч дүгнэлт">
-            <AIExecutiveSummary />
-            <div className="whitespace-pre-wrap text-sm">
-             
-            </div>
+           <ModuleCard>
+            <ComplianceChart items={complianceItems || []} />
           </ModuleCard>
         </div>
 
         <div className="grid gap-4 xl:grid-cols-2">
-          <ModuleCard title="Журмын хэрэгжилт" description="Compliance items">
-            <SimpleTable
-              columns={["Журам", "Хариуцагч", "Биелэлт", "Эрсдэл"]}
-              rows={compliance.map((x) => ({
-                Журам: x.title,
-                Хариуцагч: x.owner_department || "-",
-                Биелэлт: `${x.compliance_score}%`,
-                Эрсдэл: x.risk_level,
-              }))}
+         
+         <ModuleCard title="Employee Voice" description="Санал, гомдол, эрсдэлийн бүтэц">
+            <EmployeeVoiceChart voices={employeeVoices || []} />
+          </ModuleCard>
+         <ModuleCard title="Эрсдэлийн матриц" description="Findings + Employee Voice risk">
+            <RiskMatrix
+              findings={dashboardFindings || []}
+              voices={employeeVoices || []}
             />
           </ModuleCard>
 
-          <ModuleCard title="Employee Voice" description="Ажилтны санал, хүсэлт, зөрчил">
-            <SimpleTable
-              columns={["Гарчиг", "Төрөл", "Төлөв"]}
-              rows={voice.map((x) => ({
-                Гарчиг: x.title,
-                Төрөл: x.type,
-                Төлөв: x.status,
-              }))}
-            />
-          </ModuleCard>
+          
         </div>
       </div>
     </DashboardLayout>

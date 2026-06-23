@@ -104,36 +104,6 @@ export default function InspectionDetailModal({
       router.refresh();
     }
 
-    async function updateFindingStatus(
-      findingId: string,
-      newStatus: string
-    ) {
-      const payload: any = {
-        status: newStatus,
-      };
-
-      if (newStatus === "resolved") {
-        payload.verified_at = new Date().toISOString();
-      }
-
-      if (newStatus === "closed") {
-        payload.closed_at = new Date().toISOString();
-      }
-
-      const { error } = await supabase
-        .from("findings")
-        .update(payload)
-        .eq("id", findingId);
-
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      loadFindings();
-      router.refresh();
-    }
-
     useEffect(() => {
     loadFindings();
     }, [inspection.id]);

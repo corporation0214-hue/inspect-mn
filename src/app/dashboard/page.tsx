@@ -105,7 +105,7 @@ export default async function DashboardPage() {
             Ерөнхий самбар
           </h1>
           <p className="text-slate-500 dark:text-slate-400">
-            {org?.name || "Байгууллага"} — Supabase өгөгдөлтэй dashboard
+            {org?.name || "Байгууллага"} — DB өгөгдөлтэй dashboard
           </p>
         </div>
 
@@ -144,10 +144,10 @@ export default async function DashboardPage() {
 
         <div className="grid gap-4 xl:grid-cols-2">
          
-         <ModuleCard title="Employee Voice" description="Санал, гомдол, эрсдэлийн бүтэц">
+         <ModuleCard title="" description="">
             <EmployeeVoiceChart voices={employeeVoices || []} />
           </ModuleCard>
-         <ModuleCard title="Эрсдэлийн матриц" description="Findings + Employee Voice risk">
+         <ModuleCard title="" description="">
             <RiskMatrix
               findings={dashboardFindings || []}
               voices={employeeVoices || []}

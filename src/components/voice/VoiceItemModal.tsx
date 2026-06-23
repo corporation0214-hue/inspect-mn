@@ -29,23 +29,81 @@ export default function VoiceItemModal({
   const [actionTaken, setActionTaken] = useState(item?.action_taken || "");
   const [isAnonymous, setIsAnonymous] = useState(item?.is_anonymous || false);
 
+  const STATUS_OPTIONS: Record<string, { value: string; label: string }[]> = {
+    suggestion: [
+      { value: "new", label: "Шинэ" },
+      { value: "in_progress", label: "Хянагдаж байна" },
+      { value: "approved", label: "Дэмжигдсэн" },
+      { value: "rejected", label: "Няцаагдсан" },
+      { value: "closed", label: "Хаагдсан" },
+    ],
+    complaint: [
+      { value: "new", label: "Шинэ" },
+      { value: "in_progress", label: "Хянагдаж байна" },
+      { value: "resolved", label: "Шийдвэрлэсэн" },
+      { value: "rejected", label: "Няцаагдсан" },
+      { value: "closed", label: "Хаагдсан" },
+    ],
+    risk: [
+      { value: "new", label: "Шинэ" },
+      { value: "in_progress", label: "Хянагдаж байна" },
+      { value: "mitigated", label: "Арилсан" },
+      { value: "accepted", label: "Хүлээн зөвшөөрсөн" },
+      { value: "closed", label: "Хаагдсан" },
+    ],
+    violation: [
+      { value: "new", label: "Шинэ" },
+      { value: "in_progress", label: "Хянагдаж байна" },
+      { value: "fixed", label: "Арилгасан" },
+      { value: "repeated", label: "Давтагдсан" },
+      { value: "closed", label: "Хаагдсан" },
+    ],
+    confidential: [
+      { value: "new", label: "Шинэ" },
+      { value: "in_progress", label: "Хянагдаж байна" },
+      { value: "reviewed", label: "Хянагдсан" },
+      { value: "escalated", label: "Удирдлагад шилжүүлсэн" },
+      { value: "closed", label: "Хаагдсан" },
+    ],
+  };
+
+  const statusOptions = STATUS_OPTIONS[category] || STATUS_OPTIONS.suggestion;
+
   async function saveItem() {
+    const categoryLabels: Record<string, string> = {
+      suggestion: "Санал",
+      complaint: "Гомдол",
+      risk: "Эрсдэл",
+      violation: "Зөрчил",
+      confidential: "Нууц",
+    };
+
     const payload = {
-        organization_id: organizationId,
-        title,
-        type: category,
-        category,
-        description,
-        status,
-        priority,
-        department,
-        submitted_by: isAnonymous ? null : submittedBy,
-        assigned_to: assignedTo,
-        voice_date: voiceDate || null,
-        due_date: dueDate || null,
-        action_taken: actionTaken,
-        is_anonymous: isAnonymous,
-    }; 
+      title,
+      type: category,
+      category: categoryLabels[category] || category,
+      description,
+      priority,
+      department,
+      status,
+      action_taken: actionTaken,
+      resolution_note: actionTaken,
+      resolved_at: [
+        "approved",
+        "resolved",
+        "mitigated",
+        "fixed",
+        "reviewed",
+        "closed",
+      ].includes(status)
+        ? new Date().toISOString()
+        : null,
+      submitted_by: submittedBy,
+      assigned_to: assignedTo,
+      voice_date: voiceDate || null,
+      due_date: dueDate || null,
+      is_anonymous: isAnonymous,
+    };
 
     const result = createMode
       ? await supabase.from("employee_voice").insert(payload)
@@ -100,15 +158,19 @@ export default function VoiceItemModal({
           />
 
           <select
-            className="rounded-xl border p-3"
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e) => {
+              const nextCategory = e.target.value;
+              setCategory(nextCategory);
+              setStatus("new");
+            }}
+            className="rounded-xl border p-3"
           >
             <option value="suggestion">Санал</option>
             <option value="complaint">Гомдол</option>
             <option value="risk">Эрсдэл</option>
             <option value="violation">Зөрчил</option>
-            <option value="confidential">Нууц мэдээлэл</option>
+            <option value="confidential">Нууц</option>
           </select>
 
           <select
@@ -193,6 +255,18 @@ export default function VoiceItemModal({
             value={actionTaken}
             onChange={(e) => setActionTaken(e.target.value)}
           />
+
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="rounded-xl border p-3"
+          >
+            {statusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="mt-6 flex justify-between">

@@ -25,6 +25,12 @@ export default async function RiskPage() {
     .eq("organization_id", orgId)
     .order("created_at", { ascending: false });
 
+  const { data: inspections } = await supabase
+    .from("inspections")
+    .select("*")
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false });
+
   const { data: plans } = await supabase
     .from("risk_action_plans")
     .select("*")
@@ -33,12 +39,17 @@ export default async function RiskPage() {
 
   return (
     <DashboardLayout>
+
       <RiskClient
         organizationId={orgId}
         findings={findings || []}
+        inspections={inspections || []}
         employeeVoices={employeeVoices || []}
         plans={plans || []}
       />
+
     </DashboardLayout>
+
+    
   );
 }

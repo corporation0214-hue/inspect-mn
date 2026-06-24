@@ -20,7 +20,7 @@ const typeLabels: Record<string, string> = {
 function normalizeVoiceType(value: any) {
   const v = String(value || "").trim().toLowerCase();
 
-  if (v === "Санал" || v === "санал") return "Санал";
+  if (v === "suggestion" || v === "санал") return "suggestion";
   if (v === "complaint" || v === "гомдол") return "complaint";
   if (v === "risk" || v === "эрсдэл") return "risk";
   if (v === "violation" || v === "зөрчил") return "violation";
@@ -79,6 +79,10 @@ export default function VoiceClient({ organizationId, items }: Props) {
   } | null>(null);
 
   const filteredItems = useMemo(() => {
+    if (filter === "telegram") {
+      return items.filter((x: any) => x.source === "telegram");
+    }
+
     return items.filter((x) => matchCategory(x, filter));
   }, [items, filter]);
 
@@ -188,7 +192,8 @@ export default function VoiceClient({ organizationId, items }: Props) {
         <div className="mb-4 flex flex-wrap gap-2">
           {[
             ["all", "Бүгд"],
-            ["Санал", "Санал"],
+            ["telegram", "Telegram"],
+            ["suggestion", "Санал"],
             ["complaint", "Гомдол"],
             ["risk", "Эрсдэл"],
             ["violation", "Зөрчил"],
@@ -218,6 +223,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
                 <th className="border px-4 py-3 text-left">Төрөл</th>
                 <th className="border px-4 py-3 text-left">Төлөв</th>
                 <th className="border px-4 py-3 text-left">Priority</th>
+                <th className="border px-4 py-3 text-left">Эх үүсвэр</th>
                 <th className="border px-4 py-3 text-left">Алба</th>
                 <th className="border px-4 py-3 text-left">Хариуцагч</th>
                 <th className="border px-4 py-3 text-left">Огноо</th>
@@ -235,23 +241,13 @@ export default function VoiceClient({ organizationId, items }: Props) {
                     className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
                   >
                     <td className="border px-4 py-3">{item.title || "-"}</td>
-                    <td className="border px-4 py-3">
-                      {typeLabels[normalizedType] ||
-                        item.category ||
-                        item.type ||
-                        "-"}
-                    </td>
+                    <td className="border px-4 py-3">{typeLabels[normalizedType] || item.category || item.type || "-"}</td>
                     <td className="border px-4 py-3">{item.status || "-"}</td>
                     <td className="border px-4 py-3">{item.priority || "-"}</td>
-                    <td className="border px-4 py-3">
-                      {item.department || "-"}
-                    </td>
-                    <td className="border px-4 py-3">
-                      {item.assigned_to || "-"}
-                    </td>
-                    <td className="border px-4 py-3">
-                      {item.voice_date || "-"}
-                    </td>
+                    <td className="border px-4 py-3">{item.source === "telegram" ? "Telegram" : "Web"}</td>
+                    <td className="border px-4 py-3">{item.department || "-"}</td>
+                    <td className="border px-4 py-3">{item.assigned_to || "-"}</td>
+                    <td className="border px-4 py-3">{item.voice_date || "-"}</td>
                   </tr>
                 );
               })}
@@ -259,7 +255,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
               {filteredItems.length === 0 && (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-8 text-center text-slate-500"
                   >
                     Мэдээлэл олдсонгүй.

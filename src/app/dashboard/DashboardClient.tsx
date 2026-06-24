@@ -8,7 +8,11 @@ import EmployeeVoiceChart from "@/components/dashboard/EmployeeVoiceChart";
 import RiskMatrix from "@/components/dashboard/RiskMatrix";
 
 function dateOnly(d: Date) {
-  return d.toISOString().slice(0, 10);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function inRange(item: any, fromDate: string, toDate: string) {
@@ -262,11 +266,11 @@ export default function DashboardClient({
         />
 
         <KpiCard
-  title="Өндөр эрсдэл"
-  value={highRisk}
-  note={`Findings: ${highRiskFindings.length} · Voice: ${highRiskVoices.length} · Төлөвлөгөөтэй: ${plannedHighRisk}`}
-  color="text-orange-600"
-/>
+          title="Өндөр эрсдэл"
+          value={highRisk}
+          note={`Findings: ${highRiskFindings.length} · Voice: ${highRiskVoices.length} · Төлөвлөгөөтэй: ${plannedHighRisk}`}
+          color="text-orange-600"
+        />
     
       </div>
 

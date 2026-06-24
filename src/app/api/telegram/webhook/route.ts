@@ -18,6 +18,21 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+async function getDefaultOrgId() {
+  const { data, error } = await supabase
+    .from("organizations")
+    .select("id")
+    .eq("code", "BAYANGOL")
+    .maybeSingle();
+
+  if (error) {
+    console.error("ORG FETCH ERROR:", error.message);
+    return null;
+  }
+
+  return data?.id ?? null;
+}
+
 function normalizeText(text: string) {
   return (text || "").trim();
 }
@@ -131,9 +146,71 @@ function classifyVoice(text: string) {
   }
 
   return {
-    type: "Санал",
+    type: "suggestion",
     category: "Санал",
     priority: "medium",
+  };
+}
+
+const TYPE_MAP: Record<string, { type: string; category: string }> = {
+  санал: { type: "suggestion", category: "Санал" },
+  suggestion: { type: "suggestion", category: "Санал" },
+  suggest: { type: "suggestion", category: "Санал" },
+
+  гомдол: { type: "complaint", category: "Гомдол" },
+  complaint: { type: "complaint", category: "Гомдол" },
+
+  эрсдэл: { type: "risk", category: "Эрсдэл" },
+  risk: { type: "risk", category: "Эрсдэл" },
+
+  зөрчил: { type: "violation", category: "Зөрчил" },
+  violation: { type: "violation", category: "Зөрчил" },
+
+  нууц: { type: "confidential", category: "Нууц" },
+  confidential: { type: "confidential", category: "Нууц" },
+};
+
+const PRIORITIES = ["low", "medium", "high", "critical"];
+
+function parseTelegramVoice(text: string) {
+  const parts = text.trim().split(/\s+/);
+  const command = parts[0]?.replace("/", "").toLowerCase();
+
+  let typeKey = "санал";
+  let priority = "medium";
+  let content = "";
+
+  if (command === "voice" || command === "anonymous") {
+    typeKey = parts[1]?.toLowerCase() || "санал";
+
+    const maybePriority = parts[2]?.toLowerCase();
+    priority = PRIORITIES.includes(maybePriority) ? maybePriority : "medium";
+
+    content = PRIORITIES.includes(maybePriority)
+      ? parts.slice(3).join(" ")
+      : parts.slice(2).join(" ");
+  } else {
+    if (command === "suggest") typeKey = "санал";
+    if (command === "complaint") typeKey = "гомдол";
+    if (command === "risk") typeKey = "эрсдэл";
+    if (command === "violation") typeKey = "зөрчил";
+    if (command === "confidential") typeKey = "нууц";
+
+    const maybePriority = parts[1]?.toLowerCase();
+    priority = PRIORITIES.includes(maybePriority) ? maybePriority : "medium";
+
+    content = PRIORITIES.includes(maybePriority)
+      ? parts.slice(2).join(" ")
+      : parts.slice(1).join(" ");
+  }
+
+  const mapped = TYPE_MAP[typeKey] || TYPE_MAP["санал"];
+
+  return {
+    type: mapped.type,
+    category: mapped.category,
+    priority,
+    content: content || text,
   };
 }
 
@@ -646,8 +723,10 @@ Telegram ID: ${telegramId}
     }
 
     if (text.startsWith("/anonymous")) {
-      const voiceText = text.replace("/anonymous", "").trim();
-
+      const parsed = parseTelegramVoice(text);
+      const voiceText = parsed.content;
+      const orgId = await getDefaultOrgId();
+      
       if (!voiceText) {
         await sendTelegramMessage(
           chatId,
@@ -664,25 +743,31 @@ Telegram ID: ${telegramId}
         return NextResponse.json({ ok: true });
       }
 
-      const classified = classifyVoice(voiceText);
+      const parsed = parseTelegramVoice(text);
+      const voiceText = parsed.content;
 
       const { error } = await supabase.from("employee_voice").insert({
+        organization_id: await getDefaultOrgId(),
+        
         title: voiceText.slice(0, 80),
         description: voiceText,
-        type: classified.type,
-        category: classified.category,
+
+        type: parsed.type,
+        category: parsed.category,
         status: "new",
-        priority: classified.priority,
+        priority: parsed.priority,
+
         department: tgUser?.department || null,
         assigned_to: null,
 
-        submitted_by: "anonymous",
-        submitted_name: "Anonymous",
-        telegram_id: null,
-        role: "anonymous",
+        submitted_by: fullName || username || telegramId,
+        submitted_name: fullName || username || telegramId,
+
+        telegram_id: telegramId,
+        role,
         source: "telegram",
 
-        is_anonymous: true,
+        is_anonymous: false,
         voice_date: new Date().toISOString().slice(0, 10),
       });
 
@@ -702,8 +787,8 @@ Telegram ID: ${telegramId}
         `
     ✅ <b>Anonymous Employee Voice бүртгэгдлээ</b>
 
-    Төрөл: ${escapeTelegramHtml(classified.category)}
-    Priority: ${escapeTelegramHtml(classified.priority)}
+    Төрөл: ${escapeTelegramHtml(parsed.category)}
+    Priority: ${escapeTelegramHtml(parsed.priority)}
 
     Таны нэр хадгалагдахгүй.
     `
@@ -713,63 +798,76 @@ Telegram ID: ${telegramId}
     }
 
     if (text.startsWith("/voice")) {
-      const voiceText = text.replace("/voice", "").trim();
+  const parsed = parseTelegramVoice(text);
+  const voiceText = parsed.content;
 
-      if (!voiceText) {
-        await sendTelegramMessage(
-          chatId,
-          `
-Employee Voice илгээхдээ ингэж бичнэ үү:
+  if (!voiceText) {
+    await sendTelegramMessage(
+      chatId,
+      `
+Employee Voice илгээх format:
 
-/voice Ажлын байрны гэрэлтүүлэг муу байна
-
-Систем автоматаар санал, гомдол, эрсдэл, зөрчил гэж ангилна.
+/voice санал medium Ажлын байрны гэрэлтүүлэг муу байна
+/voice гомдол high Ажлын цаг хэт урт байна
+/voice эрсдэл critical Галын хор байхгүй байна
 `
-        );
+    );
 
-        return NextResponse.json({ ok: true });
-      }
+    return NextResponse.json({ ok: true });
+  }
 
-      const classified = classifyVoice(voiceText);
+  const orgId = await getDefaultOrgId();
 
-      const { error } = await supabase.from("employee_voice").insert({
-        title: voiceText.slice(0, 80),
-        description: voiceText,
-        type: classified.type,
-        category: classified.category,
-        status: "new",
-        priority: classified.priority,
-        department: tgUser?.department || null,
-        assigned_to: null,
-        submitted_by: fullName || username || telegramId,
-        is_anonymous: false,
-        voice_date: new Date().toISOString().slice(0, 10),
-      });
+  const { error } = await supabase.from("employee_voice").insert({
+    organization_id: orgId,
 
-      if (error) {
-        await sendTelegramMessage(
-          chatId,
-          `Employee Voice хадгалахад алдаа гарлаа: ${escapeTelegramHtml(error.message)}`
-        );
+    title: voiceText.slice(0, 80),
+    description: voiceText,
 
-        return NextResponse.json({ ok: true });
-      }
+    type: parsed.type,
+    category: parsed.category,
+    status: "new",
+    priority: parsed.priority,
 
-      await sendTelegramMessage(
-        chatId,
-        `
+    department: tgUser?.department || null,
+    assigned_to: null,
+
+    submitted_by: fullName || username || telegramId,
+    submitted_name: fullName || username || telegramId,
+
+    telegram_id: telegramId,
+    role,
+    source: "telegram",
+
+    is_anonymous: false,
+    voice_date: new Date().toISOString().slice(0, 10),
+  });
+
+  if (error) {
+    await sendTelegramMessage(
+      chatId,
+      `Employee Voice хадгалахад алдаа гарлаа: ${escapeTelegramHtml(error.message)}`
+    );
+
+    return NextResponse.json({ ok: true });
+  }
+
+  await sendTelegramMessage(
+    chatId,
+    `
 ✅ <b>Employee Voice бүртгэгдлээ</b>
 
-Төрөл: ${escapeTelegramHtml(classified.category)}
-Priority: ${escapeTelegramHtml(classified.priority)}
+Төрөл: ${escapeTelegramHtml(parsed.category)}
+Priority: ${escapeTelegramHtml(parsed.priority)}
+Telegram ID: <code>${escapeTelegramHtml(telegramId)}</code>
 
 Текст:
 ${escapeTelegramHtml(voiceText)}
 `
-      );
+  );
 
-      return NextResponse.json({ ok: true });
-    }
+  return NextResponse.json({ ok: true });
+}
 
     if (text.startsWith("/")) {
       await sendTelegramMessage(
@@ -796,3 +894,4 @@ ${escapeTelegramHtml(voiceText)}
     });
   }
 }
+

@@ -30,6 +30,7 @@ function statusLabel(value: string) {
 export default function RiskClient({
   organizationId,
   findings,
+  inspections = [],
   employeeVoices,
   plans,
 }: any) {
@@ -43,17 +44,26 @@ export default function RiskClient({
         (x: any) =>
           !CLOSED_STATUSES.includes(String(x.status || "").toLowerCase())
       )
-      .map((x: any) => ({
-        id: x.id,
-        source: "finding",
-        sourceLabel: "Хяналт шалгалт",
-        title: x.title,
-        description: x.description,
-        risk_level: normalizeRisk(x.severity || x.risk_level || x.priority),
-        status: x.status || "open",
-        owner: x.owner || "-",
-        created_at: x.created_at,
-      }));
+      .map((x: any) => {
+        const inspection = inspections.find(
+          (i: any) => i.id === x.inspection_id
+        );
+
+        return {
+          id: x.id,
+          source: "finding",
+          sourceLabel: "Хяналт шалгалт",
+          title: x.title,
+          description: x.description,
+          risk_level: normalizeRisk(x.severity || x.risk_level || x.priority),
+          status: x.status || "open",
+          owner: x.owner || "-",
+          created_at: x.created_at,
+
+          inspection_title: inspection?.title || "-",
+          inspection_type: inspection?.type || "-",
+        };
+      });
 
     const voiceRisks = employeeVoices
       .filter(
@@ -72,10 +82,13 @@ export default function RiskClient({
         status: x.status || "open",
         owner: x.assigned_to || x.submitted_by || "-",
         created_at: x.created_at,
+
+        inspection_title: "-",
+        inspection_type: "-",
       }));
 
     return [...findingRisks, ...voiceRisks];
-  }, [findings, employeeVoices]);
+  }, [findings, inspections, employeeVoices]);
 
   const filteredRisks =
     filter === "all"
@@ -176,7 +189,16 @@ export default function RiskClient({
           <table className="w-full min-w-[1000px] text-sm">
             <thead className="sticky top-0 bg-slate-100">
               <tr>
-                {["Эрсдэл", "Эх үүсвэр", "Түвшин", "Төлөв", "Хариуцагч", "Үйлдэл"].map(
+                {[
+                    "Эрсдэл",
+                    "Илрүүлсэн ХШ",
+                    "ХШ төрөл",
+                    "Эх үүсвэр",
+                    "Түвшин",
+                    "Төлөв",
+                    "Хариуцагч",
+                    "Үйлдэл",
+                  ].map(
                   (col) => (
                     <th key={col} className="border px-4 py-3 text-left">
                       {col}
@@ -195,7 +217,16 @@ export default function RiskClient({
                       {risk.description || "-"}
                     </p>
                   </td>
+                  <td className="border px-4 py-3">
+                    {risk.source === "finding" ? risk.inspection_title : "-"}
+                  </td>
+
+                  <td className="border px-4 py-3">
+                    {risk.source === "finding" ? risk.inspection_type : "-"}
+                  </td>
+
                   <td className="border px-4 py-3">{risk.sourceLabel}</td>
+
                   <td className="border px-4 py-3 font-semibold">
                     {riskLabel(risk.risk_level)}
                   </td>
@@ -214,7 +245,7 @@ export default function RiskClient({
 
               {filteredRisks.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
                     Нээлттэй эрсдэл олдсонгүй.
                   </td>
                 </tr>

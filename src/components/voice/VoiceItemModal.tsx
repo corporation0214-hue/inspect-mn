@@ -79,6 +79,7 @@ export default function VoiceItemModal({
     };
 
     const payload = {
+      organization_id: organizationId,
       title,
       type: category,
       category: categoryLabels[category] || category,
@@ -103,6 +104,7 @@ export default function VoiceItemModal({
       voice_date: voiceDate || null,
       due_date: dueDate || null,
       is_anonymous: isAnonymous,
+      source: item?.source || "web",
     };
 
     const result = createMode

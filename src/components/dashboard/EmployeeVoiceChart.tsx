@@ -1,7 +1,7 @@
 export default function EmployeeVoiceChart({ voices = [] }: any) {
   const rows = [
     {
-      type: "Санал",
+      type: "suggestion",
       label: "Санал",
       resultLabel: "Дэмжигдсэн",
       doneStatuses: ["approved", "supported", "accepted", "done", "closed"],

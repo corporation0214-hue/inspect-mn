@@ -18,8 +18,17 @@ export async function POST(req: Request) {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    const { id, full_name, role, department, position, status } =
-      await req.json();
+    const {
+      id,
+      full_name,
+      role,
+      department,
+      position,
+      status,
+      receive_daily_report,
+      receive_weekly_report,
+      receive_monthly_report,
+    } = await req.json();
 
     if (!id) {
       return NextResponse.json(
@@ -36,6 +45,10 @@ export async function POST(req: Request) {
         department,
         position,
         status,
+        receive_daily_report,
+        receive_weekly_report,
+        receive_monthly_report,
+
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);

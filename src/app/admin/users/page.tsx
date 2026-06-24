@@ -38,11 +38,17 @@ export default async function UsersPage() {
     .select("*")
     .order("created_at", { ascending: false });
 
+  const { data: systemSettings } = await adminSupabase
+    .from("system_settings")
+    .select("*")
+    .order("key", { ascending: true });
+
   return (
     <DashboardLayout>
       <UsersClient
         users={users || []}
         telegramUsers={telegramUsers || []}
+        systemSettings={systemSettings || []}
       />
     </DashboardLayout>
   );

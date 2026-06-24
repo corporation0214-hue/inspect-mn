@@ -6,19 +6,69 @@ import UserEditModal from "@/components/admin/UserEditModal";
 import UserCreateModal from "@/components/admin/UserCreateModal";
 import TelegramUserEditModal from "@/components/admin/TelegramUserEditModal";
 import TelegramInviteModal from "@/components/admin/TelegramInviteModal";
+import { createClient } from "@/lib/supabase/client";
 
 export default function UsersClient({
   users,
   telegramUsers,
+  systemSettings,
 }: {
   users: any[];
   telegramUsers: any[];
+  systemSettings: any[];
 }) {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [selectedTelegramUser, setSelectedTelegramUser] = useState<any | null>(
   null
 );
   const [filter, setFilter] = useState("all");
+
+  const supabase = createClient();
+
+const getSetting = (key: string, fallback = "") =>
+  systemSettings.find((x) => x.key === key)?.value ?? fallback;
+
+const [reportSettings, setReportSettings] = useState({
+  daily_report_enabled: getSetting("daily_report_enabled", "true"),
+  daily_report_time: getSetting("daily_report_time", "08:00"),
+
+  weekly_report_enabled: getSetting("weekly_report_enabled", "true"),
+  weekly_report_day: getSetting("weekly_report_day", "monday"),
+  weekly_report_time: getSetting("weekly_report_time", "08:30"),
+
+  monthly_report_enabled: getSetting("monthly_report_enabled", "false"),
+  monthly_report_day: getSetting("monthly_report_day", "1"),
+  monthly_report_time: getSetting("monthly_report_time", "09:00"),
+
+  report_telegram_enabled: getSetting("report_telegram_enabled", "true"),
+  report_email_enabled: getSetting("report_email_enabled", "false"),
+
+  report_include_dashboard: getSetting("report_include_dashboard", "true"),
+  report_include_inspection: getSetting("report_include_inspection", "true"),
+  report_include_findings: getSetting("report_include_findings", "true"),
+  report_include_compliance: getSetting("report_include_compliance", "true"),
+  report_include_voice: getSetting("report_include_voice", "true"),
+  report_include_risk: getSetting("report_include_risk", "true"),
+  report_include_research: getSetting("report_include_research", "true"),
+});
+
+async function saveReportSettings() {
+  const rows = Object.entries(reportSettings).map(([key, value]) => ({
+    key,
+    value: String(value),
+  }));
+
+  const { error } = await supabase
+    .from("system_settings")
+    .upsert(rows, { onConflict: "key" });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Report settings хадгалагдлаа");
+}
 
   const filteredUsers = useMemo(() => {
     if (filter === "all") return users;
@@ -41,7 +91,7 @@ export default function UsersClient({
   ).length;
   const [showCreate,setShowCreate] = useState(false);
   const [showTelegramInvite, setShowTelegramInvite] = useState(false);
-
+  
   return (
     <div className="space-y-6">
       <div>
@@ -63,14 +113,14 @@ export default function UsersClient({
           onSuccess={() => window.location.reload()}
         />
         
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 xl:grid-cols-4">
         <UserCard title="Нийт хэрэглэгч" value={totalUsers} />
         <UserCard title="Идэвхтэй" value={activeUsers} color="text-green-600" />
         <UserCard title="Manager" value={managers} color="text-blue-600" />
         <UserCard title="Admin" value={admins} color="text-purple-600" />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 xl:grid-cols-4">
       <UserCard title="Telegram Users" value={totalTelegramUsers} />
       <UserCard title="Telegram Active" value={activeTelegramUsers} color="text-green-600" />
       <UserCard title="Telegram CEO" value={ceoTelegramUsers} color="text-purple-600" />
@@ -271,6 +321,194 @@ export default function UsersClient({
         
       </tbody>
     </table>
+  </div>
+</div>
+
+<div className="rounded-2xl border bg-white p-5">
+  <div className="mb-5">
+    <h2 className="text-xl font-bold">Report Settings</h2>
+    <p className="text-sm text-slate-500">
+      Daily, Weekly, Monthly тайлангийн автомат илгээлтийн тохиргоо
+    </p>
+  </div>
+
+  <div className="grid gap-4 lg:grid-cols-3">
+    <div className="rounded-xl border p-4">
+      <label className="flex items-center gap-2 font-bold">
+        <input
+          type="checkbox"
+          checked={reportSettings.daily_report_enabled === "true"}
+          onChange={(e) =>
+            setReportSettings({
+              ...reportSettings,
+              daily_report_enabled: String(e.target.checked),
+            })
+          }
+        />
+        Daily Report
+      </label>
+
+      <input
+        type="time"
+        className="mt-3 w-full rounded-xl border p-3"
+        value={reportSettings.daily_report_time}
+        onChange={(e) =>
+          setReportSettings({
+            ...reportSettings,
+            daily_report_time: e.target.value,
+          })
+        }
+      />
+    </div>
+
+    <div className="rounded-xl border p-4">
+      <label className="flex items-center gap-2 font-bold">
+        <input
+          type="checkbox"
+          checked={reportSettings.weekly_report_enabled === "true"}
+          onChange={(e) =>
+            setReportSettings({
+              ...reportSettings,
+              weekly_report_enabled: String(e.target.checked),
+            })
+          }
+        />
+        Weekly Report
+      </label>
+
+      <select
+        className="mt-3 w-full rounded-xl border p-3"
+        value={reportSettings.weekly_report_day}
+        onChange={(e) =>
+          setReportSettings({
+            ...reportSettings,
+            weekly_report_day: e.target.value,
+          })
+        }
+      >
+        <option value="monday">Monday</option>
+        <option value="tuesday">Tuesday</option>
+        <option value="wednesday">Wednesday</option>
+        <option value="thursday">Thursday</option>
+        <option value="friday">Friday</option>
+      </select>
+
+      <input
+        type="time"
+        className="mt-3 w-full rounded-xl border p-3"
+        value={reportSettings.weekly_report_time}
+        onChange={(e) =>
+          setReportSettings({
+            ...reportSettings,
+            weekly_report_time: e.target.value,
+          })
+        }
+      />
+    </div>
+
+    <div className="rounded-xl border p-4">
+      <label className="flex items-center gap-2 font-bold">
+        <input
+          type="checkbox"
+          checked={reportSettings.monthly_report_enabled === "true"}
+          onChange={(e) =>
+            setReportSettings({
+              ...reportSettings,
+              monthly_report_enabled: String(e.target.checked),
+            })
+          }
+        />
+        Monthly Report
+      </label>
+
+      <input
+        type="number"
+        min="1"
+        max="31"
+        className="mt-3 w-full rounded-xl border p-3"
+        value={reportSettings.monthly_report_day}
+        onChange={(e) =>
+          setReportSettings({
+            ...reportSettings,
+            monthly_report_day: e.target.value,
+          })
+        }
+      />
+
+      <input
+        type="time"
+        className="mt-3 w-full rounded-xl border p-3"
+        value={reportSettings.monthly_report_time}
+        onChange={(e) =>
+          setReportSettings({
+            ...reportSettings,
+            monthly_report_time: e.target.value,
+          })
+        }
+      />
+    </div>
+  </div>
+
+  <div className="mt-5 grid gap-4 lg:grid-cols-2">
+    <div className="rounded-xl border p-4">
+      <h3 className="mb-3 font-bold">Илгээх суваг</h3>
+
+      {[
+        ["report_telegram_enabled", "Telegram"],
+        ["report_email_enabled", "Email"],
+      ].map(([key, label]) => (
+        <label key={key} className="mb-2 flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={(reportSettings as any)[key] === "true"}
+            onChange={(e) =>
+              setReportSettings({
+                ...reportSettings,
+                [key]: String(e.target.checked),
+              })
+            }
+          />
+          {label}
+        </label>
+      ))}
+    </div>
+
+    <div className="rounded-xl border p-4">
+      <h3 className="mb-3 font-bold">Тайланд оруулах модулиуд</h3>
+
+      {[
+        ["report_include_dashboard", "Dashboard"],
+        ["report_include_inspection", "Inspection"],
+        ["report_include_findings", "Findings"],
+        ["report_include_compliance", "Compliance"],
+        ["report_include_voice", "Employee Voice"],
+        ["report_include_risk", "Risk Management"],
+        ["report_include_research", "R&D"],
+      ].map(([key, label]) => (
+        <label key={key} className="mb-2 flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={(reportSettings as any)[key] === "true"}
+            onChange={(e) =>
+              setReportSettings({
+                ...reportSettings,
+                [key]: String(e.target.checked),
+              })
+            }
+          />
+          {label}
+        </label>
+      ))}
+    </div>
+  </div>
+
+  <div className="mt-5 flex justify-end">
+    <button
+      onClick={saveReportSettings}
+      className="rounded-xl bg-blue-600 px-5 py-3 text-white"
+    >
+      Report Settings хадгалах
+    </button>
   </div>
 </div>
 

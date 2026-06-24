@@ -19,6 +19,16 @@ export default function TelegramUserEditModal({
   const [position, setPosition] = useState(user?.position || "");
   const [status, setStatus] = useState(user?.status || "active");
 
+  const [receiveDailyReport, setReceiveDailyReport] = useState(
+    user?.receive_daily_report || false
+  );
+  const [receiveWeeklyReport, setReceiveWeeklyReport] = useState(
+    user?.receive_weekly_report || false
+  );
+  const [receiveMonthlyReport, setReceiveMonthlyReport] = useState(
+    user?.receive_monthly_report || false
+  );
+
   async function saveTelegramUser() {
     setLoading(true);
 
@@ -28,6 +38,7 @@ export default function TelegramUserEditModal({
         headers: {
           "Content-Type": "application/json",
         },
+        
         body: JSON.stringify({
           id: user.id,
           full_name: fullName,
@@ -35,6 +46,9 @@ export default function TelegramUserEditModal({
           department,
           position,
           status,
+          receive_daily_report: receiveDailyReport,
+          receive_weekly_report: receiveWeeklyReport,
+          receive_monthly_report: receiveMonthlyReport,
         }),
       });
 
@@ -126,6 +140,39 @@ export default function TelegramUserEditModal({
             <option value="disabled">Disabled</option>
             <option value="pending">Pending</option>
           </select>
+        </div>
+
+        <div className="rounded-xl border p-4 md:col-span-2">
+          <p className="mb-3 font-semibold">Report Distribution</p>
+
+          <div className="grid gap-2 md:grid-cols-3">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={receiveDailyReport}
+                onChange={(e) => setReceiveDailyReport(e.target.checked)}
+              />
+              Daily Report
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={receiveWeeklyReport}
+                onChange={(e) => setReceiveWeeklyReport(e.target.checked)}
+              />
+              Weekly Report
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={receiveMonthlyReport}
+                onChange={(e) => setReceiveMonthlyReport(e.target.checked)}
+              />
+              Monthly Report
+            </label>
+          </div>
         </div>
 
         <div className="mt-6 flex justify-between">

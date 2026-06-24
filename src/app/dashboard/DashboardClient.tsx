@@ -6,6 +6,7 @@ import InspectionAnalytics from "@/components/dashboard/InspectionAnalytics";
 import ComplianceChart from "@/components/dashboard/ComplianceChart";
 import EmployeeVoiceChart from "@/components/dashboard/EmployeeVoiceChart";
 import RiskMatrix from "@/components/dashboard/RiskMatrix";
+import { AlignCenter } from "lucide-react";
 
 function dateOnly(d: Date) {
   const year = d.getFullYear();
@@ -230,7 +231,7 @@ export default function DashboardClient({
         <KpiCard
           title="Хяналт шалгалт"
           value={totalInspections}
-          note={`Төлөвлөгөөт: ${plannedInspections} · Төлөвлөгөөт бус: ${unplannedInspections}`}
+          note={`Төлөвлөгөөт: ${plannedInspections} · Төлөвлөгөөт бус: ${unplannedInspections}`}          
         />
 
         <KpiCard
@@ -255,7 +256,7 @@ export default function DashboardClient({
         />
 
         <KpiCard
-          title="Employee Voice"
+          title="Ажилчдын дуу хоолой"
           value={filtered.employeeVoices.length}
           note={`Нээлттэй: ${
             filtered.employeeVoices.filter(
@@ -268,7 +269,7 @@ export default function DashboardClient({
         <KpiCard
           title="Өндөр эрсдэл"
           value={highRisk}
-          note={`Findings: ${highRiskFindings.length} · Voice: ${highRiskVoices.length} · Төлөвлөгөөтэй: ${plannedHighRisk}`}
+          note={`Зөрчил: ${highRiskFindings.length} · Дуу, хоолой: ${highRiskVoices.length} · Төлөвлөгөөтэй: ${plannedHighRisk}`}
           color="text-orange-600"
         />
     

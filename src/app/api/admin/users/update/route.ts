@@ -18,6 +18,9 @@ export async function POST(req: Request) {
       position,
       phone,
       status,
+      receive_daily_report,
+      receive_weekly_report,
+      receive_monthly_report,
       actor_id,
       actor_name,
     } = body;
@@ -35,6 +38,9 @@ export async function POST(req: Request) {
         position,
         phone,
         status,
+        receive_daily_report,
+        receive_weekly_report,
+        receive_monthly_report,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id);

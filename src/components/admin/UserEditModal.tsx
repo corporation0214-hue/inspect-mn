@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 export default function UserEditModal({
   user,
@@ -11,7 +10,7 @@ export default function UserEditModal({
   onClose: () => void;
 }) {
   if (!user) return null;
-  const supabase = createClient();
+ 
 
   const [fullName, setFullName] = useState(user?.full_name || "");
   const [role, setRole] = useState(user?.role || "employee");
@@ -20,10 +19,23 @@ export default function UserEditModal({
   const [phone, setPhone] = useState(user?.phone || "");
   const [status, setStatus] = useState(user?.status || "active");
 
+  const [receiveDailyReport, setReceiveDailyReport] = useState(
+    user?.receive_daily_report || false
+  );
+  const [receiveWeeklyReport, setReceiveWeeklyReport] = useState(
+    user?.receive_weekly_report || false
+  );
+  const [receiveMonthlyReport, setReceiveMonthlyReport] = useState(
+    user?.receive_monthly_report || false
+  );
+
   async function saveUser() {
-    const { error } = await supabase
-      .from("profiles")
-      .update({
+    const res = await fetch("/api/admin/users/update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         id: user.id,
         full_name: fullName,
         role,
@@ -31,12 +43,20 @@ export default function UserEditModal({
         position,
         phone,
         status,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
 
-    if (error) {
-      alert(error.message);
+        receive_daily_report: receiveDailyReport,
+        receive_weekly_report: receiveWeeklyReport,
+        receive_monthly_report: receiveMonthlyReport,
+
+        actor_id: user.id,
+        actor_name: fullName || user.email || "Admin",
+      }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      alert(result.error || "User update failed");
       return;
     }
 
@@ -115,6 +135,39 @@ export default function UserEditModal({
             onChange={(e) => setPhone(e.target.value)}
           />
         </div>
+
+          <div className="rounded-xl border p-4 md:col-span-2">
+            <p className="mb-3 font-semibold">Report Distribution</p>
+
+            <div className="grid gap-2 md:grid-cols-3">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={receiveDailyReport}
+                  onChange={(e) => setReceiveDailyReport(e.target.checked)}
+                />
+                Daily Report
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={receiveWeeklyReport}
+                  onChange={(e) => setReceiveWeeklyReport(e.target.checked)}
+                />
+                Weekly Report
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={receiveMonthlyReport}
+                  onChange={(e) => setReceiveMonthlyReport(e.target.checked)}
+                />
+                Monthly Report
+              </label>
+            </div>
+          </div>
 
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={onClose} className="rounded-xl border px-4 py-2">

@@ -724,6 +724,7 @@ Telegram ID: ${telegramId}
 
     if (text.startsWith("/anonymous")) {
       const parsed = parseTelegramVoice(text);
+      const voiceText = parsed.content;
       const orgId = await getDefaultOrgId();
       
       if (!voiceText) {
@@ -741,7 +742,7 @@ Telegram ID: ${telegramId}
 
         return NextResponse.json({ ok: true });
       }
-           
+            
       const { error } = await supabase.from("employee_voice").insert({
         organization_id: await getDefaultOrgId(),
         

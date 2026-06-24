@@ -741,9 +741,7 @@ Telegram ID: ${telegramId}
 
         return NextResponse.json({ ok: true });
       }
-
-      const parsed = parseTelegramVoice(text);
-      
+           
       const { error } = await supabase.from("employee_voice").insert({
         organization_id: await getDefaultOrgId(),
         

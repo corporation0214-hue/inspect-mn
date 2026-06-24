@@ -37,6 +37,12 @@ export default async function ReportsPage() {
     .eq("organization_id", orgId)
     .order("created_at", { ascending: false });
 
+  const { data: employeeVoices } = await supabase
+    .from("employee_voice")
+    .select("*")
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false });
+
   return (
     <DashboardLayout>
       <ReportsClient
@@ -44,7 +50,7 @@ export default async function ReportsPage() {
         findings={findings ?? []}
         compliance={compliance ?? []}
         research={research ?? []}
-        voice={research ?? []}
+        voice={employeeVoices ?? []}
       />
     </DashboardLayout>
   );

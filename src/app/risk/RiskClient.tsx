@@ -132,8 +132,8 @@ export default function RiskClient({
           + Төлөвлөгөө нэмэх
         </button>
       </div>
-
-      <div className="grid gap-4 md:grid-cols-4">
+      
+        <div className="gap-3 grid grid-cols-2 lg:grid-cols-4 2xl:grid-cols-4 text-center">
         <KpiCard title="Нээлттэй эрсдэл" value={riskItems.length} note="Findings + Voice" />
         <KpiCard
           title="High / Critical"

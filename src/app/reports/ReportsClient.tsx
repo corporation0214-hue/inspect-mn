@@ -47,69 +47,109 @@ export default function ReportsClient({
   );
 
   const reportRows = useMemo(() => {
-    const allRows = [
-      ...inspections.map((x) => ({
-        module: "Inspection",
-        title: x.title,
-        status: x.status,
-        category: x.type || x.category,
-        owner: x.performed_by || x.registered_by,
-        date: getDateOnly(x.inspection_date || x.created_at),
-      })),
-      ...findings.map((x) => ({
-        module: "Finding",
-        title: x.title,
-        status: x.status,
-        category: x.category || x.severity,
-        owner: x.owner,
-        date: getDateOnly(x.created_at),
-      })),
-      ...compliance.map((x) => ({
-        module: "Compliance",
-        title: x.title,
-        status: x.status,
-        category: x.item_type || x.framework,
-        owner: x.responsible_person || x.owner_department,
-        date: getDateOnly(x.next_review_date || x.created_at),
-      })),
-      ...research.map((x) => ({
-        module: "R&D",
-        title: x.title,
-        status: x.status,
-        category: x.category || x.priority,
-        owner: x.owner,
-        date: getDateOnly(x.start_date || x.end_date || x.created_at),
-      })),
+  const allRows = [
+    ...inspections.map((x) => ({
+      module: "Inspection",
+      title: x.title,
+      type: x.type || "-",
+      category: x.category || x.inspection_type || "-",
+      riskLevel: "-",
+      status: x.status || "-",
+      owner: x.performed_by || x.registered_by || "-",
+      department: "-",
+      source: "Web",
+      relatedInspection: x.title || "-",
+      date: getDateOnly(x.inspection_date || x.created_at),
+    })),
 
-      ...employeeVoices.map((x) => ({
-        module: "Employee Voice",
-        title: x.title,
-        status: x.status,
-        category: x.category,
-        owner: x.department,
-        date: getDateOnly(x.voice_date || x.created_at),
-      })),
-    ];
+    ...findings.map((x) => ({
+      module: "Finding",
+      title: x.title,
+      type: "Зөрчил",
+      category: x.category || "-",
+      riskLevel: x.severity || "-",
+      status: x.status || "-",
+      owner: x.owner || "-",
+      department: "-",
+      source: "Inspection",
+      relatedInspection: x.inspection_id || "-",
+      date: getDateOnly(x.created_at),
+    })),
 
-    return allRows.filter((row) => {
-      const matchModule = moduleFilter === "all" || row.module === moduleFilter;
-      const matchDate =
-        !startDate && !endDate ? true : inDateRange(row.date, startDate, endDate);
+    ...compliance.map((x) => ({
+      module: "Compliance",
+      title: x.title,
+      type: x.item_type || "-",
+      category: x.framework || x.owner_department || "-",
+      riskLevel: x.risk_level || "-",
+      status: x.status || "-",
+      owner: x.responsible_person || "-",
+      department: x.owner_department || "-",
+      source: "Compliance Center",
+      relatedInspection: "-",
+      date: getDateOnly(x.next_review_date || x.created_at),
+    })),
 
-      return matchModule && matchDate;
-    });
-  }, [inspections, findings, compliance, research, employeeVoices, startDate, endDate, moduleFilter]);
+    ...research.map((x) => ({
+      module: "R&D",
+      title: x.title,
+      type: x.category || "-",
+      category: x.priority || "-",
+      riskLevel: "-",
+      status: x.status || "-",
+      owner: x.owner || "-",
+      department: "-",
+      source: "Research",
+      relatedInspection: "-",
+      date: getDateOnly(x.start_date || x.end_date || x.created_at),
+    })),
+
+    ...employeeVoices.map((x) => ({
+      module: "Employee Voice",
+      title: x.title,
+      type: x.type || "-",
+      category: x.category || "-",
+      riskLevel: x.priority || "-",
+      status: x.status || "-",
+      owner: x.assigned_to || x.submitted_by || "-",
+      department: x.department || "-",
+      source: x.source === "telegram" ? "Telegram" : "Web",
+      relatedInspection: "-",
+      date: getDateOnly(x.voice_date || x.created_at),
+    })),
+  ];
+
+  return allRows.filter((row) => {
+    const matchModule = moduleFilter === "all" || row.module === moduleFilter;
+    const matchDate =
+      !startDate && !endDate ? true : inDateRange(row.date, startDate, endDate);
+
+    return matchModule && matchDate;
+  });
+}, [
+  inspections,
+  findings,
+  compliance,
+  research,
+  employeeVoices,
+  startDate,
+  endDate,
+  moduleFilter,
+]);
 
   const inspectionCount = reportRows.filter((x) => x.module === "Inspection").length;
   const findingCount = reportRows.filter((x) => x.module === "Finding").length;
   const complianceCount = reportRows.filter((x) => x.module === "Compliance").length;
   const researchCount = reportRows.filter((x) => x.module === "R&D").length;
+  const voiceCount = reportRows.filter(
+  (x) => x.module === "Employee Voice"
+).length;
   
   const openFindings = reportRows.filter(
     (x) => x.module === "Finding" && x.status === "open"
   ).length;
 
-  const voiceCount = employeeVoices.length;
+  
 
   const suggestionCount =
     employeeVoices.filter(
@@ -157,15 +197,19 @@ export default function ReportsClient({
     const rowsHtml = reportRows
       .map(
         (x) => `
-        <tr>
-          <td>${x.module || "-"}</td>
-          <td>${x.title || "-"}</td>
-          <td>${x.status || "-"}</td>
-          <td>${x.category || "-"}</td>
-          <td>${x.owner || "-"}</td>
-          <td>${x.date || "-"}</td>
-        </tr>
-      `
+          <tr>
+            <td>${x.module || "-"}</td>
+            <td>${x.title || "-"}</td>
+            <td>${x.type || "-"}</td>
+            <td>${x.category || "-"}</td>
+            <td>${x.riskLevel || "-"}</td>
+            <td>${x.status || "-"}</td>
+            <td>${x.owner || "-"}</td>
+            <td>${x.department || "-"}</td>
+            <td>${x.source || "-"}</td>
+            <td>${x.date || "-"}</td>
+          </tr>
+        `
       )
       .join("");
 
@@ -197,7 +241,7 @@ export default function ReportsClient({
 
           .summary{
             display:grid;
-            grid-template-columns:repeat(5,1fr);
+            grid-template-columns:repeat(6,1fr);
             gap:12px;
             margin-bottom:20px;
           }
@@ -269,18 +313,27 @@ export default function ReportsClient({
             <div class="value">${researchCount}</div>
           </div>
 
+          <div class="card">
+            <div>Voice</div>
+            <div class="value">${voiceCount}</div>
+          </div>
+
         </div>
 
         <table>
 
           <thead>
             <tr>
-              <th>Модуль</th>
-              <th>Нэр</th>
-              <th>Төлөв</th>
-              <th>Ангилал</th>
-              <th>Хариуцагч</th>
-              <th>Огноо</th>
+              <th className="border px-4 py-3 text-left">Модуль</th>
+              <th className="border px-4 py-3 text-left">Гарчиг</th>
+              <th className="border px-4 py-3 text-left">Төрөл</th>
+              <th className="border px-4 py-3 text-left">Ангилал</th>
+              <th className="border px-4 py-3 text-left">Эрсдэлийн түвшин</th>
+              <th className="border px-4 py-3 text-left">Төлөв</th>
+              <th className="border px-4 py-3 text-left">Хариуцагч</th>
+              <th className="border px-4 py-3 text-left">Алба</th>
+              <th className="border px-4 py-3 text-left">Эх үүсвэр</th>
+              <th className="border px-4 py-3 text-left">Огноо</th>
             </tr>
           </thead>
 
@@ -310,89 +363,7 @@ export default function ReportsClient({
     }, 500);
   }
 
-  async function generatePdf() {
-    
-    const doc = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a4",
-    });
-    doc.text(`R&D: ${researchCount}`, 195, 35);
-    doc.setFontSize(18);
-    doc.text("INSPECT.MN - Integrated Report", 14, 15);
-
-    doc.setFontSize(10);
-    doc.text(
-      `Period: ${startDate || "-"} - ${endDate || "-"}`,
-      14,
-      22
-    );
-
-    doc.setFontSize(12);
-
-    doc.text(`Total Activities: ${reportRows.length}`, 14, 35);
-    doc.text(`Inspections: ${inspectionCount}`, 60, 35);
-    doc.text(`Findings: ${findingCount}`, 105, 35);
-    doc.text(`Open Findings: ${openFindings}`, 145, 35);
-    doc.text(
-      `R&D: ${
-        reportRows.filter((x:any) => x.module === "R&D").length
-      }`,
-      195,
-      35
-    );
-
-    autoTable(doc, {
-      startY: 45,
-
-      head: [[
-        "Module",
-        "Name",
-        "Status",
-        "Category",
-        "Responsible",
-        "Date",
-      ]],
-
-      body: reportRows.map((x: any) => [
-        x.module,
-        x.title,
-        x.status,
-        x.category,
-        x.owner,
-        x.date,
-      ]),
-
-      styles: {
-        fontSize: 8,
-      },
-
-      headStyles: {
-        fillColor: [30, 64, 175],
-      },
-    });
-
-    doc.save(
-      `INSPECT_Report_${startDate}_${endDate}.pdf`
-    );
-
-    await fetch("/api/reports/history", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        report_no: reportNumber,
-        report_name: "Integrated Management Report",
-        start_date: startDate,
-        end_date: endDate,
-        module_filter: moduleFilter,
-        total_records: reportRows.length,
-        generated_by: "Admin",
-      }),
-    });
-
-  }
+  
 
   function buildReportHtml() {
     const rowsHtml = reportRows
@@ -401,9 +372,13 @@ export default function ReportsClient({
           <tr>
             <td>${x.module || "-"}</td>
             <td>${x.title || "-"}</td>
-            <td>${x.status || "-"}</td>
+            <td>${x.type || "-"}</td>
             <td>${x.category || "-"}</td>
+            <td>${x.riskLevel || "-"}</td>
+            <td>${x.status || "-"}</td>
             <td>${x.owner || "-"}</td>
+            <td>${x.department || "-"}</td>
+            <td>${x.source || "-"}</td>
             <td>${x.date || "-"}</td>
           </tr>
         `
@@ -532,7 +507,7 @@ export default function ReportsClient({
 
             .summary {
               display: grid;
-              grid-template-columns: repeat(5, 1fr);
+              grid-template-columns: repeat(6, 1fr);
               gap: 10px;
               margin-bottom: 18px;
             }
@@ -682,8 +657,13 @@ export default function ReportsClient({
                 <div class="card-label">R&D</div>
                 <div class="card-value blue">${researchCount}</div>
               </div>
-            </div>
 
+              <div class="card">
+                <div class="card-label">Voice</div>
+                <div class="card-value blue">${voiceCount}</div>
+              </div>
+            </div>
+    
             <div
               style="
               display:grid;
@@ -736,10 +716,14 @@ export default function ReportsClient({
               <thead>
                 <tr>
                   <th>Модуль</th>
-                  <th>Нэр</th>
-                  <th>Төлөв</th>
+                  <th>Гарчиг</th>
+                  <th>Төрөл</th>
                   <th>Ангилал</th>
+                  <th>Эрсдэлийн түвшин</th>
+                  <th>Төлөв</th>
                   <th>Хариуцагч</th>
+                  <th>Алба</th>
+                  <th>Эх үүсвэр</th>
                   <th>Огноо</th>
                 </tr>
               </thead>
@@ -929,7 +913,7 @@ export default function ReportsClient({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 items-center text-center">
         
           <ReportSummaryCard label="Нийт ажил" value={reportRows.length} />
           <ReportSummaryCard label="ХШ" value={inspectionCount} color="text-blue-600" />
@@ -948,10 +932,14 @@ export default function ReportsClient({
             <thead className="sticky top-0 bg-slate-100">
               <tr>
                 <th className="border px-4 py-3 text-left">Модуль</th>
-                <th className="border px-4 py-3 text-left">Нэр</th>
+                <th className="border px-4 py-3 text-left">Гарчиг</th>
+                <th className="border px-4 py-3 text-left">Төрөл</th>
+                <th className="border px-4 py-3 text-left">Ангилал</th>
+                <th className="border px-4 py-3 text-left">Эрсдэлийн түвшин</th>
                 <th className="border px-4 py-3 text-left">Төлөв</th>
-                <th className="border px-4 py-3 text-left">Төрөл / Ангилал</th>
                 <th className="border px-4 py-3 text-left">Хариуцагч</th>
+                <th className="border px-4 py-3 text-left">Алба</th>
+                <th className="border px-4 py-3 text-left">Эх үүсвэр</th>
                 <th className="border px-4 py-3 text-left">Огноо</th>
               </tr>
             </thead>
@@ -961,16 +949,20 @@ export default function ReportsClient({
                 <tr key={`${x.module}-${index}`} className="hover:bg-slate-50">
                   <td className="border px-4 py-3">{x.module}</td>
                   <td className="border px-4 py-3">{x.title || "-"}</td>
-                  <td className="border px-4 py-3">{x.status || "-"}</td>
+                  <td className="border px-4 py-3">{x.type || "-"}</td>
                   <td className="border px-4 py-3">{x.category || "-"}</td>
+                  <td className="border px-4 py-3">{x.riskLevel || "-"}</td>
+                  <td className="border px-4 py-3">{x.status || "-"}</td>
                   <td className="border px-4 py-3">{x.owner || "-"}</td>
+                  <td className="border px-4 py-3">{x.department || "-"}</td>
+                  <td className="border px-4 py-3">{x.source || "-"}</td>
                   <td className="border px-4 py-3">{x.date || "-"}</td>
                 </tr>
               ))}
 
               {reportRows.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={10} className="px-4 py-8 text-center text-slate-500">
                     Сонгосон нөхцөлөөр мэдээлэл олдсонгүй.
                   </td>
                 </tr>

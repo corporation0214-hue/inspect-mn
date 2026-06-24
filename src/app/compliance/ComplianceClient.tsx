@@ -78,7 +78,7 @@ export default function ComplianceClient({
         </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-4 xl:grid-cols-4 text-center">
         {[
           { key: "total", title: "Нийт шаардлага", value: items.length, color: "text-slate-950" },
           { key: "active", title: "Идэвхтэй", value: activeItems.length, color: "text-blue-600" },
@@ -100,7 +100,7 @@ export default function ComplianceClient({
         ))}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
         <ModuleCard title="Нийцлийн үнэлгээ" description="ISO / MNS / Дотоод бодлого, журам хэрэгжилт">
           <div className="space-y-3">
             {frameworks.map((fw) => {

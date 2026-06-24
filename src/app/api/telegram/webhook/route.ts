@@ -724,7 +724,6 @@ Telegram ID: ${telegramId}
 
     if (text.startsWith("/anonymous")) {
       const parsed = parseTelegramVoice(text);
-      const voiceText = parsed.content;
       const orgId = await getDefaultOrgId();
       
       if (!voiceText) {
@@ -744,8 +743,7 @@ Telegram ID: ${telegramId}
       }
 
       const parsed = parseTelegramVoice(text);
-      const voiceText = parsed.content;
-
+      
       const { error } = await supabase.from("employee_voice").insert({
         organization_id: await getDefaultOrgId(),
         
@@ -797,7 +795,7 @@ Telegram ID: ${telegramId}
       return NextResponse.json({ ok: true });
     }
 
-    if (text.startsWith("/voice")) {
+   if (text.startsWith("/voice")) {
   const parsed = parseTelegramVoice(text);
   const voiceText = parsed.content;
 
@@ -816,10 +814,8 @@ Employee Voice илгээх format:
     return NextResponse.json({ ok: true });
   }
 
-  const orgId = await getDefaultOrgId();
-
   const { error } = await supabase.from("employee_voice").insert({
-    organization_id: orgId,
+    organization_id: await getDefaultOrgId(),
 
     title: voiceText.slice(0, 80),
     description: voiceText,

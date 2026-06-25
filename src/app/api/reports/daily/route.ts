@@ -135,12 +135,12 @@ export async function GET() {
     }
 
     if (settings.enabled("daily_include_high_risk", "true")) {
-      lines.push(`Нээлттэй High/Critical зөрчил: <b>${openHighFindings}</b>`);
+      lines.push(`Нээлттэй өндөр/ноцтой зөрчил: <b>${openHighFindings}</b>`);
     }
 
     if (settings.enabled("daily_include_voice", "true")) {
-      lines.push(`Нээлттэй Employee Voice: <b>${openVoices}</b>`);
-      lines.push(`Нээлттэй Voice Risk: <b>${openRiskVoices}</b>`);
+      lines.push(`Нээлттэй ажилчдын дуу хоолой: <b>${openVoices}</b>`);
+      lines.push(`Нээлттэй дуу хоолойн эрдсэл: <b>${openRiskVoices}</b>`);
     }
 
     if (settings.enabled("daily_include_actions", "true")) {
@@ -153,7 +153,7 @@ export async function GET() {
       lines.push(``);
       lines.push(`━━━━━━━━━━━━`);
       lines.push(``);
-      lines.push(`🤖 <b>AI Executive Summary</b>`);
+      lines.push(`🤖 <b>AI гүйцэтгэлийн хураангуй</b>`);
       lines.push(``);
 
       if (totalUrgent > 0) {

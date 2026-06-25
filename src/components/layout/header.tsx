@@ -83,10 +83,17 @@ export default function Header({ onOpenMobile }: Props) {
         </Link>
 
         <button
-          onClick={handleLogout}
-          className="rounded-lg border px-3 py-2 text-sm text-slate-700 md:px-4"
+          onClick={() => {
+            document.documentElement.classList.toggle("dark");
+            localStorage.setItem(
+              "theme",
+              document.documentElement.classList.contains("dark") ? "dark" : "light"
+            );
+          }}
+          className="rounded-xl border px-2 py-1"
+          title="Light / Dark mode"
         >
-          Logout
+          🌓
         </button>
 
         <div className="relative" ref={menuRef}>

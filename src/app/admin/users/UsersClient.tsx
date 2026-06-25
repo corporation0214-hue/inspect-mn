@@ -87,6 +87,34 @@ async function saveReportSettings() {
     }),
   });
 
+  async function sendManualReport(type: "daily" | "weekly" | "monthly") {
+    const confirmed = confirm(`${type.toUpperCase()} report-ийг одоо илгээх үү?`);
+
+    if (!confirmed) return;
+
+    const res = await fetch(`/api/reports/${type}`, {
+      method: "GET",
+    });
+
+    const result = await res.json();
+
+    if (!res.ok || result.ok === false) {
+      alert(result.error || `${type} report илгээхэд алдаа гарлаа`);
+      return;
+    }
+
+    if (result.skipped) {
+      alert(`${type} report илгээгдсэнгүй: ${result.skipped}`);
+      return;
+    }
+
+    alert(
+      `${type.toUpperCase()} report амжилттай илгээгдлээ. Recipients: ${
+        result.recipients ?? 0
+      }`
+    );
+  }
+
   const result = await res.json();
 
   if (!res.ok) {
@@ -96,6 +124,33 @@ async function saveReportSettings() {
 
   alert("Report settings хадгалагдлаа");
   window.location.reload();
+}
+
+async function sendManualReport(type: "daily" | "weekly" | "monthly") {
+  const confirmed = confirm(`${type.toUpperCase()} report-ийг одоо илгээх үү?`);
+  if (!confirmed) return;
+
+  const res = await fetch(`/api/reports/${type}`, {
+    method: "GET",
+  });
+
+  const result = await res.json();
+
+  if (!res.ok || result.ok === false) {
+    alert(result.error || `${type} report илгээхэд алдаа гарлаа`);
+    return;
+  }
+
+  if (result.skipped) {
+    alert(`${type} report илгээгдсэнгүй: ${result.skipped}`);
+    return;
+  }
+
+  alert(
+    `${type.toUpperCase()} report амжилттай илгээгдлээ. Recipients: ${
+      result.recipients ?? 0
+    }`
+  );
 }
 
   const filteredUsers = useMemo(() => {
@@ -120,6 +175,7 @@ async function saveReportSettings() {
   const [showCreate,setShowCreate] = useState(false);
   const [showTelegramInvite, setShowTelegramInvite] = useState(false);
   
+
   return (
     <div className="space-y-6">
       <div>
@@ -596,6 +652,41 @@ async function saveReportSettings() {
       </div>
     </div>
   </div>
+
+<div className="mt-5 rounded-xl border p-4">
+  <div className="mb-3">
+    <h3 className="font-bold">Manual Report Send</h3>
+    <p className="text-sm text-slate-500">
+      Auto schedule хүлээхгүйгээр тайланг шууд илгээх
+    </p>
+  </div>
+
+  <div className="grid gap-3 sm:grid-cols-3">
+    <button
+      type="button"
+      onClick={() => sendManualReport("daily")}
+      className="rounded-xl border px-4 py-3 font-semibold hover:bg-slate-100"
+    >
+      Send Daily Report
+    </button>
+
+    <button
+      type="button"
+      onClick={() => sendManualReport("weekly")}
+      className="rounded-xl border px-4 py-3 font-semibold hover:bg-slate-100"
+    >
+      Send Weekly Report
+    </button>
+
+    <button
+      type="button"
+      onClick={() => sendManualReport("monthly")}
+      className="rounded-xl border px-4 py-3 font-semibold hover:bg-slate-100"
+    >
+      Send Monthly Report
+    </button>
+  </div>
+</div>
 
   <div className="mt-5 flex justify-end">
     <button

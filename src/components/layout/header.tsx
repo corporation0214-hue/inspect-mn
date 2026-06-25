@@ -92,7 +92,7 @@ export default function Header({ onOpenMobile }: Props) {
             localStorage.setItem("theme", nextTheme);
             document.cookie = `theme=${nextTheme}; path=/; max-age=31536000`;
           }}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 transition-colors"
           title="Light / Dark mode"
         >
           🌓

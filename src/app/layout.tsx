@@ -21,12 +21,8 @@ export default async function RootLayout({
             __html: `
               (function () {
                 try {
-                  var theme = localStorage.getItem("theme");
-                  if (theme === "dark") {
-                    document.documentElement.classList.add("dark");
-                  } else {
-                    document.documentElement.classList.remove("dark");
-                  }
+                  const theme = localStorage.getItem("theme") || "light";
+                  document.documentElement.classList.toggle("dark", theme === "dark");
                 } catch (e) {}
               })();
             `,
@@ -34,7 +30,7 @@ export default async function RootLayout({
         />
       </head>
 
-      <body className="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <body className="bg-slate-50 text-slate-900">
         {children}
       </body>
     </html>

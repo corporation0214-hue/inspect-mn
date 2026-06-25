@@ -50,7 +50,7 @@ export default function ResearchKpiDetailModal({
             ×
           </button>
         </div>
-
+       <div className="max-h-[560px] overflow-y-auto rounded-xl border">
         <div className="mb-5 grid gap-3 md:grid-cols-3">
           <div className="rounded-2xl border bg-slate-50 p-4">
             <p className="text-sm text-slate-500">Төслийн тоо</p>
@@ -131,6 +131,7 @@ export default function ResearchKpiDetailModal({
             </tbody>
           </table>
         </div>
+       </div>
       </div>
     </div>
   );

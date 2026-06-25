@@ -105,11 +105,11 @@ export default function VoiceClient({ organizationId, items }: Props) {
   const highPriorityPercent = Math.round((highPriority / totalCount) * 100);
 
   return (
-    <div className="space-y-6 text-slate-900 dark:text-slate-100">
+    <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Ажилтны дуу хоолой</h1>
-          <p className="text-slate-500 dark:text-slate-400">
+          <h1 className="text-3xl font-bold text-slate-900">Ажилтны дуу хоолой</h1>
+          <p className="text-slate-500">
             Ажилтны санал, гомдол, эрсдэл, нууц мэдээллийн бүртгэл
           </p>
         </div>
@@ -188,7 +188,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
         />
       </div>
 
-      <div className="rounded-2xl border border-slate-300 bg-white p-5 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+      <div className="rounded-2xl border bg-white p-5 text-slate-900 shadow-sm">
         <div className="mb-4 flex flex-wrap gap-2">
           {[
             ["all", "Бүгд"],
@@ -202,10 +202,10 @@ export default function VoiceClient({ organizationId, items }: Props) {
             <button
               key={key}
               onClick={() => setFilter(key)}
-              className={`rounded-xl border border-slate-300 px-4 py-2 dark:border-slate-700 ${
+              className={`rounded-xl border px-4 py-2 ${
                 filter === key
                   ? "bg-blue-600 text-white"
-                  : "bg-white text-slate-800 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                  : "hover:bg-slate-100"
               }`}
             >
               {label}
@@ -217,7 +217,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
 
         <div className="max-h-[520px] overflow-auto rounded-xl border">
           <table className="w-full min-w-[1000px] text-sm">
-            <thead className="sticky top-0 bg-slate-100 dark:bg-slate-800">
+            <thead className="sticky top-0 bg-slate-100 text-slate-900">
               <tr>
                 <th className="border px-4 py-3 text-left">Гарчиг</th>
                 <th className="border px-4 py-3 text-left">Төрөл</th>
@@ -238,7 +238,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
                   <tr
                     key={item.id}
                     onClick={() => setSelected(item)}
-                    className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
+                    className="cursor-pointer hover:bg-slate-50"
                   >
                     <td className="border px-4 py-3">{item.title || "-"}</td>
                     <td className="border px-4 py-3">{typeLabels[normalizedType] || item.category || item.type || "-"}</td>
@@ -310,35 +310,35 @@ function VoiceKpiCard({
   onExpand: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-300 bg-white p-5 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+    <div className="rounded-2xl border bg-white p-5 text-slate-900 shadow-sm">
       <div className="mb-3 flex items-start justify-between">
         <div>
           <h3 className="text-lg font-bold">{title}</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
+          <p className="text-sm text-slate-500">{subtitle}</p>
         </div>
 
         <button
           onClick={onExpand}
-          className="rounded-lg border px-2 py-1 text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="rounded-lg border px-2 py-1 text-xs hover:bg-slate-100"
         >
           ⛶
         </button>
       </div>
 
-      <div className="rounded-xl bg-slate-50 p-4 text-slate-900 dark:bg-slate-800 dark:text-slate-100">
+      <div className="rounded-xl bg-slate-50 p-4 text-slate-900">
         <div className="grid grid-cols-3 text-center text-sm">
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Нийт</p>
+            <p className="text-xs text-slate-500">Нийт</p>
             <p className={`text-2xl font-bold ${color}`}>{value}</p>
           </div>
 
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Хувь</p>
+            <p className="text-xs text-slate-500">Хувь</p>
             <p className="text-2xl font-bold">{percent}%</p>
           </div>
 
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Түвшин</p>
+            <p className="text-xs text-slate-500">Түвшин</p>
             <p className="font-bold">
               {percent >= 70 ? "Өндөр" : percent >= 30 ? "Дунд" : "Бага"}
             </p>
@@ -346,7 +346,7 @@ function VoiceKpiCard({
         </div>
       </div>
 
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
         <div
           className="h-full rounded-full bg-blue-600"
           style={{ width: `${Math.min(percent, 100)}%` }}
@@ -354,7 +354,7 @@ function VoiceKpiCard({
       </div>
 
       <div className="mt-4">
-        <p className="mb-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+        <p className="mb-2 text-xs font-semibold text-slate-500">
           TOP 3 АНГИЛАЛ
         </p>
 
@@ -367,7 +367,7 @@ function VoiceKpiCard({
               </div>
             ))
           ) : (
-            <p className="text-slate-500 dark:text-slate-400">Мэдээлэл байхгүй.</p>
+            <p className="text-slate-500">Мэдээлэл байхгүй.</p>
           )}
         </div>
       </div>

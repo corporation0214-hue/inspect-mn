@@ -116,11 +116,11 @@ export default function RiskClient({
   });
 
   return (
-    <div className="space-y-6 text-slate-900 dark:text-slate-100">
+    <div className="space-y-6">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Эрсдэлийн удирдлага</h1>
-          <p className="text-slate-500 dark:text-slate-400">
+          <h1 className="text-3xl font-bold text-slate-900">Эрсдэлийн удирдлага</h1>
+          <p className="text-slate-500">
             Нээлттэй эрсдэл, арга хэмжээний төлөвлөгөө, явцын хяналт
           </p>
         </div>
@@ -155,7 +155,7 @@ export default function RiskClient({
         />
       </div>
 
-      <div className="rounded-2xl border border-slate-300 bg-white p-5 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+      <div className="rounded-2xl border bg-white p-5 text-slate-900 shadow-sm">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-bold">Нээлттэй эрсдэлийн бүртгэл</h2>
@@ -175,8 +175,8 @@ export default function RiskClient({
               <button
                 key={key}
                 onClick={() => setFilter(key)}
-                className={`rounded-xl border border-slate-300 px-4 py-2 dark:border-slate-700 ${
-                  filter === key ? "bg-blue-600 text-white" : "bg-white text-slate-800 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                className={`rounded-xl border px-4 py-2 ${
+                  filter === key ? "bg-blue-600 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 {label}
@@ -187,7 +187,7 @@ export default function RiskClient({
 
         <div className="max-h-[420px] overflow-auto rounded-xl border">
           <table className="w-full min-w-[1000px] text-sm">
-            <thead className="sticky top-0 bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100">
+            <thead className="sticky top-0 bg-slate-100 text-slate-900">
               <tr>
                 {[
                     "Эрсдэл",
@@ -210,7 +210,7 @@ export default function RiskClient({
 
             <tbody>
               {filteredRisks.map((risk: any) => (
-                <tr key={`${risk.source}-${risk.id}`} className="hover:bg-slate-50 dark:hover:bg-slate-800">
+                <tr key={`${risk.source}-${risk.id}`} className="hover:bg-slate-50">
                   <td className="border px-4 py-3">
                     <p className="font-semibold">{risk.title}</p>
                     <p className="line-clamp-1 text-xs text-slate-500">
@@ -255,7 +255,7 @@ export default function RiskClient({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-300 bg-white p-5 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+      <div className="rounded-2xl border bg-white p-5 text-slate-900 shadow-sm">
         <div className="mb-4">
           <h2 className="text-xl font-bold">Арга хэмжээний төлөвлөгөө</h2>
           <p className="text-sm text-slate-500">
@@ -265,7 +265,7 @@ export default function RiskClient({
 
         <div className="max-h-[480px] overflow-auto rounded-xl border">
           <table className="w-full min-w-[1200px] text-sm">
-            <thead className="sticky top-0 bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100">
+            <thead className="sticky top-0 bg-slate-100 text-slate-900">
               <tr>
                 {[
                   "Эрсдэл",
@@ -286,7 +286,7 @@ export default function RiskClient({
 
             <tbody>
               {plans.map((plan: any) => (
-                <tr key={plan.id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
+                <tr key={plan.id} className="hover:bg-slate-50">
                   <td className="border px-4 py-3">{plan.risk_title}</td>
                   <td className="border px-4 py-3">{plan.action_title}</td>
                   <td className="border px-4 py-3">{riskLabel(plan.risk_level)}</td>
@@ -309,7 +309,7 @@ export default function RiskClient({
                   <td className="border px-4 py-3">
                     <button
                       onClick={() => setSelectedPlan(plan)}
-                      className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                      className="rounded-lg border bg-white px-3 py-2 text-slate-700 hover:bg-slate-100"
                     >
                       Edit
                     </button>
@@ -351,7 +351,7 @@ export default function RiskClient({
 
 function KpiCard({ title, value, note, color = "text-slate-900" }: any) {
   return (
-    <div className="rounded-2xl border border-slate-300 bg-white p-5 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+    <div className="rounded-2xl border bg-white p-5 text-slate-900 shadow-sm">
       <p className="text-sm text-slate-500">{title}</p>
       <p className={`mt-3 text-3xl font-bold ${color}`}>{value}</p>
       <p className="mt-2 text-xs text-slate-500">{note}</p>

@@ -6,6 +6,7 @@ import InspectionAnalytics from "@/components/dashboard/InspectionAnalytics";
 import ComplianceChart from "@/components/dashboard/ComplianceChart";
 import EmployeeVoiceChart from "@/components/dashboard/EmployeeVoiceChart";
 import RiskMatrix from "@/components/dashboard/RiskMatrix";
+import { AlignCenter } from "lucide-react";
 
 function dateOnly(d: Date) {
   const year = d.getFullYear();
@@ -169,10 +170,10 @@ export default function DashboardClient({
     ).length;
   
   return (
-    <div className="space-y-6 text-slate-900 dark:text-slate-100">
+    <div className="space-y-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-slate-900">
             Ерөнхий самбар
           </h1>
           <p className="text-slate-500">
@@ -180,7 +181,7 @@ export default function DashboardClient({
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+        <div className="flex flex-wrap items-center gap-2">
           {[
             ["today", "Өнөөдөр"],
             ["week", "7 хоног"],
@@ -192,10 +193,10 @@ export default function DashboardClient({
             <button
               key={key}
               onClick={() => applyQuickFilter(key)}
-              className={`rounded-xl border border-slate-300 px-3 py-2 text-sm shadow-sm dark:border-slate-700 ${
+              className={`rounded-xl border px-3 py-2 text-sm ${
                 quickFilter === key
                   ? "bg-blue-600 text-white"
-                  : "bg-white text-slate-800 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                  : "bg-white text-slate-700 hover:bg-slate-100"
               }`}
             >
               {label}
@@ -209,7 +210,7 @@ export default function DashboardClient({
               setQuickFilter("custom");
               setFromDate(e.target.value);
             }}
-            className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            className="rounded-xl border bg-white px-3 py-2 text-sm text-slate-900"
           />
 
           <span className="text-slate-500">→</span>
@@ -221,7 +222,7 @@ export default function DashboardClient({
               setQuickFilter("custom");
               setToDate(e.target.value);
             }}
-            className="min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            className="rounded-xl border bg-white px-3 py-2 text-sm text-slate-900"
           />
         </div>
       </div>
@@ -322,25 +323,23 @@ export default function DashboardClient({
   );
 }
 
-function KpiCard({ title, value, note, color = "text-slate-900 dark:text-slate-100" }: any) {
+function KpiCard({ title, value, note, color = "text-slate-900" }: any) {
   return (
-    <div className="min-h-[120px] rounded-2xl border border-slate-300 bg-white p-4 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
-      <p className="text-sm text-slate-500 dark:text-slate-400">{title}</p>
-      <p className={`mt-3 text-3xl font-bold leading-tight ${color}`}>{value}</p>
-      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{note}</p>
+    <div className="rounded-2xl border bg-white p-4 text-slate-900 shadow-sm">
+      <p className="text-sm text-slate-500">{title}</p>
+      <p className={`mt-3 text-3xl font-bold ${color}`}>{value}</p>
+      <p className="mt-2 text-xs text-slate-500">{note}</p>
     </div>
   );
 }
 
 function ModuleCard({ title, description, children }: any) {
   return (
-    <section className="rounded-2xl border border-slate-300 bg-white p-5 text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
-      {(title || description) && (
-        <div className="mb-4">
-          {title && <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{title}</h2>}
-          {description && <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>}
-        </div>
-      )}
+    <section className="rounded-2xl border bg-white p-5 text-slate-900 shadow-sm">
+      <div className="mb-4">
+        <h2 className="text-xl font-bold">{title}</h2>
+        <p className="text-sm text-slate-500">{description}</p>
+      </div>
       {children}
     </section>
   );

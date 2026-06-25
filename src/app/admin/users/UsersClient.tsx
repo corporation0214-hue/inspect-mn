@@ -77,21 +77,25 @@ const [reportSettings, setReportSettings] = useState({
 });
 
 async function saveReportSettings() {
-  const rows = Object.entries(reportSettings).map(([key, value]) => ({
-    key,
-    value: String(value),
-  }));
+  const res = await fetch("/api/admin/system-settings/update", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      settings: reportSettings,
+    }),
+  });
 
-  const { error } = await supabase
-    .from("system_settings")
-    .upsert(rows, { onConflict: "key" });
+  const result = await res.json();
 
-  if (error) {
-    alert(error.message);
+  if (!res.ok) {
+    alert(result.error || "Report settings хадгалахад алдаа гарлаа");
     return;
   }
 
   alert("Report settings хадгалагдлаа");
+  window.location.reload();
 }
 
   const filteredUsers = useMemo(() => {

@@ -50,6 +50,30 @@ const [reportSettings, setReportSettings] = useState({
   report_include_voice: getSetting("report_include_voice", "true"),
   report_include_risk: getSetting("report_include_risk", "true"),
   report_include_research: getSetting("report_include_research", "true"),
+
+  daily_include_inspection: getSetting("daily_include_inspection", "true"),
+  daily_include_findings: getSetting("daily_include_findings", "true"),
+  daily_include_voice: getSetting("daily_include_voice", "true"),
+  daily_include_high_risk: getSetting("daily_include_high_risk", "true"),
+  daily_include_actions: getSetting("daily_include_actions", "true"),
+  daily_include_ai_summary: getSetting("daily_include_ai_summary", "true"),
+
+  weekly_include_inspection_trend: getSetting("weekly_include_inspection_trend", "true"),
+  weekly_include_findings_progress: getSetting("weekly_include_findings_progress", "true"),
+  weekly_include_voice_breakdown: getSetting("weekly_include_voice_breakdown", "true"),
+  weekly_include_risk_trend: getSetting("weekly_include_risk_trend", "true"),
+  weekly_include_compliance_score: getSetting("weekly_include_compliance_score", "true"),
+  weekly_include_top_issues: getSetting("weekly_include_top_issues", "true"),
+  weekly_include_ai_summary: getSetting("weekly_include_ai_summary", "true"),
+
+  monthly_include_kpi_summary: getSetting("monthly_include_kpi_summary", "true"),
+  monthly_include_department_performance: getSetting("monthly_include_department_performance", "true"),
+  monthly_include_compliance_trend: getSetting("monthly_include_compliance_trend", "true"),
+  monthly_include_repeated_findings: getSetting("monthly_include_repeated_findings", "true"),
+  monthly_include_risk_plan_status: getSetting("monthly_include_risk_plan_status", "true"),
+  monthly_include_voice_trend: getSetting("monthly_include_voice_trend", "true"),
+  monthly_include_ai_summary: getSetting("monthly_include_ai_summary", "true"),
+  monthly_include_pdf_attachment: getSetting("monthly_include_pdf_attachment", "true"),
 });
 
 async function saveReportSettings() {
@@ -449,56 +473,123 @@ async function saveReportSettings() {
     </div>
   </div>
 
-  <div className="mt-5 grid gap-4 lg:grid-cols-2">
+  <div className="mt-5 grid gap-4 xl:grid-cols-[320px_1fr]">
     <div className="rounded-xl border p-4">
       <h3 className="mb-3 font-bold">Илгээх суваг</h3>
 
-      {[
-        ["report_telegram_enabled", "Telegram"],
-        ["report_email_enabled", "Email"],
-      ].map(([key, label]) => (
-        <label key={key} className="mb-2 flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={(reportSettings as any)[key] === "true"}
-            onChange={(e) =>
-              setReportSettings({
-                ...reportSettings,
-                [key]: String(e.target.checked),
-              })
-            }
-          />
-          {label}
-        </label>
-      ))}
+      <div className="space-y-3">
+        {[
+          ["report_telegram_enabled", "Telegram"],
+          ["report_email_enabled", "Email"],
+        ].map(([key, label]) => (
+          <label key={key} className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(reportSettings as any)[key] === "true"}
+              onChange={(e) =>
+                setReportSettings({
+                  ...reportSettings,
+                  [key]: String(e.target.checked),
+                })
+              }
+            />
+            {label}
+          </label>
+        ))}
+      </div>
     </div>
 
     <div className="rounded-xl border p-4">
-      <h3 className="mb-3 font-bold">Тайланд оруулах модулиуд</h3>
+      <h3 className="mb-4 font-bold">Тайлангийн агуулгын тохиргоо</h3>
 
-      {[
-        ["report_include_dashboard", "Dashboard"],
-        ["report_include_inspection", "Inspection"],
-        ["report_include_findings", "Findings"],
-        ["report_include_compliance", "Compliance"],
-        ["report_include_voice", "Employee Voice"],
-        ["report_include_risk", "Risk Management"],
-        ["report_include_research", "R&D"],
-      ].map(([key, label]) => (
-        <label key={key} className="mb-2 flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={(reportSettings as any)[key] === "true"}
-            onChange={(e) =>
-              setReportSettings({
-                ...reportSettings,
-                [key]: String(e.target.checked),
-              })
-            }
-          />
-          {label}
-        </label>
-      ))}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="">
+          <h4 className="mb-3 font-bold">Daily Report</h4>
+
+          {[
+            ["daily_include_inspection", "Өнөөдрийн ХШ"],
+            ["daily_include_findings", "Өнөөдрийн зөрчил"],
+            ["daily_include_voice", "Өнөөдрийн ажилтны дуу хоолой"],
+            ["daily_include_high_risk", "High/Critical эрсдэл"],
+            ["daily_include_actions", "Нээлттэй арга хэмжээ"],
+            ["daily_include_ai_summary", "AI Daily Summary"],
+          ].map(([key, label]) => (
+            <label key={key} className="mb-2 flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={(reportSettings as any)[key] === "true"}
+                onChange={(e) =>
+                  setReportSettings({
+                    ...reportSettings,
+                    [key]: String(e.target.checked),
+                  })
+                }
+              />
+              <span>{label}</span>
+            </label>
+          ))}
+        </div>
+
+        <div className="">
+          <h4 className="mb-3 font-bold">Weekly Report</h4>
+
+          {[
+            ["weekly_include_inspection_trend", "7 хоногийн ХШ trend"],
+            ["weekly_include_findings_progress", "Зөрчлийн гүйцэтгэл"],
+            ["weekly_include_voice_breakdown", "Employee Voice ангилал"],
+            ["weekly_include_risk_trend", "High/Critical risk trend"],
+            ["weekly_include_compliance_score", "Compliance score"],
+            ["weekly_include_top_issues", "Top 5 issue"],
+            ["weekly_include_ai_summary", "AI Weekly Executive Summary"],
+          ].map(([key, label]) => (
+            <label key={key} className="mb-2 flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={(reportSettings as any)[key] === "true"}
+                onChange={(e) =>
+                  setReportSettings({
+                    ...reportSettings,
+                    [key]: String(e.target.checked),
+                  })
+                }
+              />
+              <span>{label}</span>
+            </label>
+          ))}
+        </div>
+
+        <div className="">
+          <h4 className="mb-3 font-bold">Monthly Report</h4>
+
+          {[
+            ["monthly_include_kpi_summary", "Сарын нэгдсэн KPI"],
+            ["monthly_include_department_performance", "Хэлтэс тус бүрийн performance"],
+            ["monthly_include_compliance_trend", "Compliance trend"],
+            ["monthly_include_repeated_findings", "Давтагдсан зөрчил"],
+            ["monthly_include_risk_plan_status", "Risk treatment plan status"],
+            ["monthly_include_voice_trend", "Employee Voice trend"],
+            ["monthly_include_ai_summary", "AI Monthly Executive Summary"],
+            ["monthly_include_pdf_attachment", "PDF хавсралт"],
+          ].map(([key, label]) => (
+            <label key={key} className="mb-2 flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={(reportSettings as any)[key] === "true"}
+                onChange={(e) =>
+                  setReportSettings({
+                    ...reportSettings,
+                    [key]: String(e.target.checked),
+                  })
+                }
+              />
+              <span>{label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
     </div>
   </div>
 

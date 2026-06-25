@@ -170,7 +170,7 @@ export default function DashboardClient({
     ).length;
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-900 dark:text-slate-100 white:text-dark">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -325,7 +325,7 @@ export default function DashboardClient({
 
 function KpiCard({ title, value, note, color = "text-slate-900" }: any) {
   return (
-    <div className="rounded-2xl border bg-white p-4 dark:bg-slate-900">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
       <p className="text-sm text-slate-500">{title}</p>
       <p className={`mt-3 text-3xl font-bold ${color}`}>{value}</p>
       <p className="mt-2 text-xs text-slate-500">{note}</p>
@@ -335,7 +335,7 @@ function KpiCard({ title, value, note, color = "text-slate-900" }: any) {
 
 function ModuleCard({ title, description, children }: any) {
   return (
-    <section className="rounded-2xl border bg-white p-5 dark:bg-slate-900">
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
       <div className="mb-4">
         <h2 className="text-xl font-bold">{title}</h2>
         <p className="text-sm text-slate-500">{description}</p>

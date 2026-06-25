@@ -105,7 +105,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
   const highPriorityPercent = Math.round((highPriority / totalCount) * 100);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-900 dark:text-slate-100">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Ажилтны дуу хоолой</h1>
@@ -188,7 +188,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
         />
       </div>
 
-      <div className="rounded-2xl border bg-white p-5 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
         <div className="mb-4 flex flex-wrap gap-2">
           {[
             ["all", "Бүгд"],
@@ -204,8 +204,8 @@ export default function VoiceClient({ organizationId, items }: Props) {
               onClick={() => setFilter(key)}
               className={`rounded-xl border px-4 py-2 ${
                 filter === key
-                  ? "bg-blue-600 text-white"
-                  : "hover:bg-slate-100 dark:hover:bg-slate-800"
+                ? "bg-blue-600 text-white"
+                : "bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
               }`}
             >
               {label}
@@ -217,7 +217,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
 
         <div className="max-h-[520px] overflow-auto rounded-xl border">
           <table className="w-full min-w-[1000px] text-sm">
-            <thead className="sticky top-0 bg-slate-100 dark:bg-slate-800">
+            <thead className="sticky top-0 bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100">
               <tr>
                 <th className="border px-4 py-3 text-left">Гарчиг</th>
                 <th className="border px-4 py-3 text-left">Төрөл</th>
@@ -238,7 +238,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
                   <tr
                     key={item.id}
                     onClick={() => setSelected(item)}
-                    className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
+                    className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/70"
                   >
                     <td className="border px-4 py-3">{item.title || "-"}</td>
                     <td className="border px-4 py-3">{typeLabels[normalizedType] || item.category || item.type || "-"}</td>
@@ -310,7 +310,7 @@ function VoiceKpiCard({
   onExpand: () => void;
 }) {
   return (
-    <div className="rounded-2xl border bg-white p-5 dark:bg-slate-900">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
       <div className="mb-3 flex items-start justify-between">
         <div>
           <h3 className="text-lg font-bold">{title}</h3>
@@ -325,7 +325,7 @@ function VoiceKpiCard({
         </button>
       </div>
 
-      <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
+      <div className="rounded-xl bg-slate-50 p-4 text-slate-900 dark:bg-slate-800 dark:text-slate-100">
         <div className="grid grid-cols-3 text-center text-sm">
           <div>
             <p className="text-xs text-slate-500">Нийт</p>

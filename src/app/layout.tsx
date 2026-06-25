@@ -15,7 +15,28 @@ export default async function RootLayout({
       className={theme === "dark" ? "dark" : ""}
       suppressHydrationWarning
     >
-      <body className="bg-slate-50">{children}</body>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                try {
+                  var theme = localStorage.getItem("theme");
+                  if (theme === "dark") {
+                    document.documentElement.classList.add("dark");
+                  } else {
+                    document.documentElement.classList.remove("dark");
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+
+      <body className="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+        {children}
+      </body>
     </html>
   );
 }

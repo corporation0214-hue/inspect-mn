@@ -77,20 +77,22 @@ export default function Header({ onOpenMobile }: Props) {
       <div className="flex items-center gap-2 md:gap-3">
         <Link
           href="/ai"
-          className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white md:px-4"
+          className="rounded-lg bg-blue-600 px-3 py-2.5 text-sm text-white md:px-4"
         >
           AI
         </Link>
 
         <button
+          type="button"
           onClick={() => {
-            document.documentElement.classList.toggle("dark");
-            localStorage.setItem(
-              "theme",
-              document.documentElement.classList.contains("dark") ? "dark" : "light"
-            );
+            const root = document.documentElement;
+            const nextTheme = root.classList.contains("dark") ? "light" : "dark";
+
+            root.classList.toggle("dark", nextTheme === "dark");
+            localStorage.setItem("theme", nextTheme);
+            document.cookie = `theme=${nextTheme}; path=/; max-age=31536000`;
           }}
-          className="rounded-xl border px-2 py-1"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800"
           title="Light / Dark mode"
         >
           🌓

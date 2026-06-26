@@ -418,7 +418,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    if (text === "/help") {
+    if (command === "/help") {
       await sendTelegramMessage(
         chatId,
         `

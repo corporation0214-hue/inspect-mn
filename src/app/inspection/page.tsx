@@ -1,14 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
 import InspectionClient from "./InspectionClient";
+import { getCurrentOrganization } from "@/lib/auth/getCurrentOrganization";
 
 export default async function InspectionPage() {
   const supabase = await createClient();
 
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("*")
-    .eq("code", "BAYANGOL")
-    .maybeSingle();
+  const {
+    organization: org,
+    organizationId,
+  } = await getCurrentOrganization();
+
+  if (!organizationId) {
+    return (
+      <div className="p-6">
+        Таны хэрэглэгчид байгууллага оноогоогүй байна.
+      </div>
+    );
+  }
 
   const orgId = org?.id ?? "";
 

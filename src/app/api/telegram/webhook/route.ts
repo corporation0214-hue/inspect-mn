@@ -6,6 +6,7 @@ import {
   escapeTelegramHtml,
 } from "@/lib/telegram/sendMessage";
 
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -18,19 +19,21 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-async function getDefaultOrgId() {
+async function getTelegramOrganizationId(
+  telegramId: string
+): Promise<string | null> {
   const { data, error } = await supabase
-    .from("organizations")
-    .select("id")
-    .eq("code", "BAYANGOL")
+    .from("telegram_users")
+    .select("organization_id")
+    .eq("telegram_id", telegramId)
     .maybeSingle();
 
   if (error) {
-    console.error("ORG FETCH ERROR:", error.message);
+    console.error("TELEGRAM ORG FETCH ERROR:", error.message);
     return null;
   }
 
-  return data?.id ?? null;
+  return data?.organization_id ?? null;
 }
 
 function normalizeText(text: string) {
@@ -356,6 +359,8 @@ export async function POST(req: Request) {
 
     const chatId = String(message.chat.id);
     const telegramId = String(message.from.id);
+    const organizationId =
+      await getTelegramOrganizationId(telegramId);
     const username = message.from.username || "";
     const fullName = [message.from.first_name, message.from.last_name]
       .filter(Boolean)

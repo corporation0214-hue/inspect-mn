@@ -1,15 +1,23 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardClient from "./DashboardClient";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentOrganization } from "@/lib/auth/getCurrentOrganization";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("*")
-    .eq("code", "BAYANGOL")
-    .maybeSingle();
+  const {
+    organization: org,
+    organizationId,
+  } = await getCurrentOrganization();
+
+  if (!organizationId) {
+    return (
+      <div className="p-6">
+        Таны хэрэглэгчид байгууллага оноогоогүй байна.
+      </div>
+    );
+  }
 
   const orgId = org?.id ?? "";
 
@@ -26,11 +34,11 @@ export default async function DashboardPage() {
     voiceRes,
     researchRes,
   ] = await Promise.all([
-    supabase.from("inspections").select("*").order("created_at", { ascending: false }),
-    supabase.from("findings").select("*").order("created_at", { ascending: false }),
-    supabase.from("compliance_items").select("*").order("created_at", { ascending: false }),
-    supabase.from("employee_voice").select("*").order("created_at", { ascending: false }),
-    supabase.from("research_projects").select("*").order("created_at", { ascending: false }),
+    supabase.from("inspections").select("*") .eq("organization_id", organizationId) .order("created_at", { ascending: false }),
+    supabase.from("findings").select("*") .eq("organization_id", organizationId) .order("created_at", { ascending: false }),
+    supabase.from("compliance_items").select("*") .eq("organization_id", organizationId) .order("created_at", { ascending: false }),
+    supabase.from("employee_voice").select("*") .eq("organization_id", organizationId) .order("created_at", { ascending: false }),
+    supabase.from("research_projects").select("*") .eq("organization_id", organizationId) .order("created_at", { ascending: false }),
   ]);
 
   return (

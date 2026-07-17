@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
+import { getCurrentOrganization } from "@/lib/auth/getCurrentOrganization";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -11,14 +12,19 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const {
+  organization: org,
+  organizationId,
+} = await getCurrentOrganization();
+
 export async function GET() {
   try {
     const [inspections, findings, compliance, research, voice] = await Promise.all([
-      supabase.from("inspections").select("*").limit(100),
-      supabase.from("findings").select("*").limit(100),
-      supabase.from("compliance_items").select("*").limit(100),
-      supabase.from("research_projects").select("*").limit(100),
-      supabase.from("employee_voice").select("*").limit(100),
+      supabase.from("inspections").select("*") .eq("organization_id", organizationId) .limit(100),
+      supabase.from("findings").select("*") .eq("organization_id", organizationId) .limit(100),
+      supabase.from("compliance_items").select("*") .eq("organization_id", organizationId) .limit(100),
+      supabase.from("research_projects").select("*") .eq("organization_id", organizationId) .limit(100),
+      supabase.from("employee_voice").select("*") .eq("organization_id", organizationId) .limit(100),
     ]);
 
     const prompt = `

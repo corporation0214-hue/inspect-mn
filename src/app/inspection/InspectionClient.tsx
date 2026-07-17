@@ -82,11 +82,23 @@ export default function InspectionClient({
   const [filter, setFilter] = useState("all");
   const [planEditType, setPlanEditType] = useState<string | null>(null);
 
-  const filteredInspections =
+  const filteredInspections = (
     filter === "all"
       ? inspections
-      : inspections.filter((x) => x.type === filter || x.category === filter);
+      : inspections.filter(
+          (x) => x.type === filter || x.category === filter
+        )
+  ).sort((a, b) => {
+    const dateA = a.inspection_date
+      ? new Date(a.inspection_date).getTime()
+      : 0;
 
+    const dateB = b.inspection_date
+      ? new Date(b.inspection_date).getTime()
+      : 0;
+
+    return dateB - dateA;
+  });
   
 
   function getPlanCount(type: string) {

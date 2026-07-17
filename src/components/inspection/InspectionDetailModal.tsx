@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import CreateFindingModal from "@/components/findings/CreateFindingModal";
+import { Pencil, Trash2, Check, X } from "lucide-react";
 
 type Inspection = {
   id: string;
@@ -60,6 +61,7 @@ export default function InspectionDetailModal({
 
     const [findings, setFindings] = useState<Finding[]>([]);
     const [showFindingModal, setShowFindingModal] = useState(false);
+
 
     async function loadFindings() {
     const { data, error } = await supabase
@@ -151,6 +153,124 @@ export default function InspectionDetailModal({
 
     onClose();
     router.refresh();
+  }
+
+  async function deleteFinding(findingId: string) {
+    const confirmed = window.confirm(
+      "Энэ зөрчлийн бүртгэлийг бүрмөсөн устгахдаа итгэлтэй байна уу?"
+    );
+
+    if (!confirmed) return;
+
+    const { data, error } = await supabase
+      .from("findings")
+      .delete()
+      .eq("id", findingId)
+      .select("id");
+
+    if (error) {
+      alert(`Зөрчил устгахад алдаа гарлаа: ${error.message}`);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      alert(
+        "Зөрчил устгагдсангүй. Supabase RLS delete эрх эсвэл бүртгэлийн ID-г шалгана уу."
+      );
+      return;
+    }
+
+    setFindings((current) =>
+      current.filter((finding) => finding.id !== findingId)
+    );
+
+    if (editingFindingId === findingId) {
+      setEditingFindingId(null);
+    }
+
+    await loadFindings();
+    router.refresh();
+
+    alert("Зөрчил амжилттай устгагдлаа.");
+  }
+
+  const [editingFindingId, setEditingFindingId] = useState<string | null>(null);
+
+  const [editingFinding, setEditingFinding] = useState({
+    title: "",
+    description: "",
+    severity: "medium",
+    status: "open",
+    owner: "",
+  });
+
+  function startEditFinding(finding: any) {
+    setEditingFindingId(finding.id);
+
+    setEditingFinding({
+      title: finding.title || "",
+      description: finding.description || "",
+      severity:
+        finding.severity ||
+        finding.risk_level ||
+        finding.priority ||
+        "medium",
+      status: finding.status || "open",
+      owner: finding.owner || "",
+    });
+  }
+
+  async function saveFindingEdit(findingId: string) {
+    if (!editingFinding.title.trim()) {
+      alert("Зөрчлийн гарчиг оруулна уу.");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("findings")
+      .update({
+        title: editingFinding.title.trim(),
+        description: editingFinding.description.trim() || null,
+        severity: editingFinding.severity,
+        status: editingFinding.status,
+        owner: editingFinding.owner.trim() || null,
+      })
+      .eq("id", findingId)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      alert(`Зөрчил засахад алдаа гарлаа: ${error.message}`);
+      return;
+    }
+
+    if (!data) {
+      alert(
+        "Зөрчлийг шинэчилж чадсангүй. RLS update эрх эсвэл тухайн бүртгэлийн ID-г шалгана уу."
+      );
+      return;
+    }
+
+    setFindings((current) =>
+      current.map((finding) =>
+        finding.id === findingId
+          ? {
+              ...finding,
+              title: editingFinding.title.trim(),
+              description: editingFinding.description.trim() || undefined,
+              severity: editingFinding.severity,
+              status: editingFinding.status,
+              owner: editingFinding.owner.trim() || undefined,
+            }
+          : finding
+      )
+    );
+
+    setEditingFindingId(null);
+    await loadFindings();
+    router.refresh();
+
+    alert("Зөрчлийн мэдээлэл шинэчлэгдлээ.");
   }
 
   return (
@@ -263,7 +383,7 @@ export default function InspectionDetailModal({
                         <div className="text-sm text-slate-500">
                           Эрсдэл: {f.severity || "-"} · Хариуцагч: {f.owner || "-"}
                         </div>
-
+                     
                         {f.description && (
                           <p className="mt-1 text-sm text-slate-600">{f.description}</p>
                         )}
@@ -293,7 +413,129 @@ export default function InspectionDetailModal({
                         <option value="resolved">Арилсан</option>
                         <option value="closed">Хаагдсан</option>
                       </select>
+
+                      <button
+                        type="button"
+                        onClick={() => startEditFinding(f)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
+                        title="Зөрчил засах"
+                      >
+                        <Pencil size={15} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => deleteFinding(f.id)}
+                        className="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                        title="Зөрчил устгах"
+                      >
+                        Устгах
+                      </button>
                     </div>
+
+                    {editingFindingId === f.id && (
+                      <div className="mt-4 rounded-xl border border-blue-400 bg-slate-50 p-4 dark:bg-slate-900">
+
+                        <div className="space-y-3">
+
+                          <input
+                            value={editingFinding.title}
+                            onChange={(e)=>
+                              setEditingFinding({
+                                ...editingFinding,
+                                title:e.target.value,
+                              })
+                            }
+                            placeholder="Зөрчлийн нэр"
+                            className="w-full rounded-lg border px-3 py-2"
+                          />
+
+                          <textarea
+                            rows={3}
+                            value={editingFinding.description}
+                            onChange={(e)=>
+                              setEditingFinding({
+                                ...editingFinding,
+                                description:e.target.value,
+                              })
+                            }
+                            placeholder="Тайлбар"
+                            className="w-full rounded-lg border px-3 py-2"
+                          />
+
+                          <div className="grid grid-cols-3 gap-3">
+
+                            <select
+                              value={editingFinding.severity}
+                              onChange={(e)=>
+                                setEditingFinding({
+                                  ...editingFinding,
+                                  severity:e.target.value,
+                                })
+                              }
+                              className="rounded-lg border px-3 py-2"
+                            >
+                              <option value="low">Low</option>
+                              <option value="medium">Medium</option>
+                              <option value="high">High</option>
+                              <option value="critical">Critical</option>
+                            </select>
+
+                            <select
+                              value={editingFinding.status}
+                              onChange={(e)=>
+                                setEditingFinding({
+                                  ...editingFinding,
+                                  status:e.target.value,
+                                })
+                              }
+                              className="rounded-lg border px-3 py-2"
+                            >
+                              <option value="open">Нээлттэй</option>
+                              <option value="planned">Төлөвлөсөн</option>
+                              <option value="in_progress">Хийгдэж байна</option>
+                              <option value="verification">Баталгаажуулалт</option>
+                              <option value="resolved">Арилсан</option>
+                              <option value="closed">Хаагдсан</option>
+                            </select>
+
+                            <input
+                              value={editingFinding.owner}
+                              onChange={(e)=>
+                                setEditingFinding({
+                                  ...editingFinding,
+                                  owner:e.target.value,
+                                })
+                              }
+                              placeholder="Хариуцагч"
+                              className="rounded-lg border px-3 py-2"
+                            />
+
+                          </div>
+
+                          <div className="flex justify-end gap-2">
+
+                            <button
+                              onClick={()=>setEditingFindingId(null)}
+                              className="rounded-lg border px-4 py-2"
+                            >
+                              Болих
+                            </button>
+
+                            <button
+                              onClick={()=>saveFindingEdit(f.id)}
+                              className="rounded-lg bg-blue-600 px-4 py-2 text-white"
+                            >
+                              Хадгалах
+                            </button>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+                    )}
+
                   </div>
                 ))}
             </div>
@@ -310,7 +552,7 @@ export default function InspectionDetailModal({
                 router.refresh();
                 }}
             />
-            )}
+            )}          
 
       </div>
     </div>

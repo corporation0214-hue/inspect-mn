@@ -289,15 +289,40 @@ async function getTelegramUser(telegramId: string, username: string, fullName: s
   return created;
 }
 
-async function answerWithAI(chatId: string, text: string, role: string) {
+  async function answerWithAI(
+    chatId: string,
+    text: string,
+    role: string,
+    organizationId: string
+  ) {
   await sendTelegramMessage(chatId, "AI боловсруулж байна...");
 
-  const [findings, compliance, research, voice] = await Promise.all([
-    supabase.from("findings").select("*").limit(80),
-    supabase.from("compliance_items").select("*").limit(80),
-    supabase.from("research_projects").select("*").limit(80),
-    supabase.from("employee_voice").select("*").limit(80),
-  ]);
+  const [findings, compliance, research, voice] =
+    await Promise.all([
+      supabase
+        .from("findings")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .limit(80),
+
+      supabase
+        .from("compliance_items")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .limit(80),
+
+      supabase
+        .from("research_projects")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .limit(80),
+
+      supabase
+        .from("employee_voice")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .limit(80),
+    ]); 
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
@@ -359,22 +384,29 @@ export async function POST(req: Request) {
 
     const chatId = String(message.chat.id);
     const telegramId = String(message.from.id);
-    const organizationId =
-      await getTelegramOrganizationId(telegramId);
     const username = message.from.username || "";
     const fullName = [message.from.first_name, message.from.last_name]
       .filter(Boolean)
       .join(" ");
 
     const text = normalizeText(message.text || "");
+    const command = text.startsWith("/")
+      ? text.split(" ")[0].toLowerCase()
+      : "";
 
+    const tgUser = await getTelegramUser(
+      telegramId,
+      username,
+      fullName
+    );
 
-    const command = text.startsWith("/") ? text.split(" ")[0].toLowerCase() : "";
+    const role = tgUser?.role || "employee";
+    const organizationId =
+      tgUser?.organization_id ||
+      (await getTelegramOrganizationId(telegramId));
 
     console.log("TELEGRAM TEXT:", text);
 
-    const tgUser = await getTelegramUser(telegramId, username, fullName);
-    const role = tgUser?.role || "employee";
     if (tgUser?.status === "disabled") {
       await sendTelegramMessage(
         chatId,
@@ -397,6 +429,7 @@ export async function POST(req: Request) {
       command: command || "ai_question",
       module: "telegram",
       payload: body,
+      organization_id: organizationId,
     });
 
     if (text === "/start") {
@@ -699,10 +732,20 @@ Telegram ID: ${telegramId}
     }
 
     if (text === "/risk") {
+      if (!organizationId) {
+        await sendTelegramMessage(
+          chatId,
+          "Таны Telegram хэрэглэгчид байгууллага оноогоогүй байна."
+        );
+
+        return NextResponse.json({ ok: true });
+      }
+
       await answerWithAI(
         chatId,
         "Сүүлийн бүртгэлүүд дээр үндэслэн хамгийн өндөр эрсдэлтэй асуудлуудыг жагсааж, удирдлагад өгөх зөвлөмж гарга.",
-        role
+        role,
+        organizationId
       );
 
       return NextResponse.json({ ok: true });
@@ -721,7 +764,8 @@ Telegram ID: ${telegramId}
       await answerWithAI(
         chatId,
         "INSPECT.MN-ийн өнөөдрийн товч удирдлагын тайлан гарга. Inspection, Compliance, R&D, Employee Voice, өндөр эрсдэлийг тусга.",
-        role
+        role,
+        organizationId
       );
 
       return NextResponse.json({ ok: true });
@@ -730,8 +774,16 @@ Telegram ID: ${telegramId}
     if (text.startsWith("/anonymous")) {
       const parsed = parseTelegramVoice(text);
       const voiceText = parsed.content;
-      const orgId = await getDefaultOrgId();
-      
+
+      if (!organizationId) {
+        await sendTelegramMessage(
+          chatId,
+          "Таны Telegram хэрэглэгчид байгууллага оноогоогүй байна. Admin хэрэглэгчид хандана уу."
+        );
+
+        return NextResponse.json({ ok: true });
+      }
+
       if (!voiceText) {
         await sendTelegramMessage(
           chatId,
@@ -739,39 +791,42 @@ Telegram ID: ${telegramId}
     <b>Anonymous Employee Voice</b>
 
     Илгээх жишээ:
-    /anonymous Агуулахын гэрэлтүүлэг хангалтгүй байна
+    <code>/anonymous санал medium Агуулахын гэрэлтүүлэг хангалтгүй байна</code>
+    <code>/anonymous эрсдэл high Галын хор байхгүй байна</code>
 
-    Таны нэр CEO болон admin-д харагдахгүй.
+    Таны нэр тайланд харагдахгүй.
     `
         );
 
         return NextResponse.json({ ok: true });
       }
-            
-      const { error } = await supabase.from("employee_voice").insert({
-        organization_id: await getDefaultOrgId(),
-        
-        title: voiceText.slice(0, 80),
-        description: voiceText,
 
-        type: parsed.type,
-        category: parsed.category,
-        status: "new",
-        priority: parsed.priority,
+      const { error } = await supabase
+        .from("employee_voice")
+        .insert({
+          organization_id: organizationId,
 
-        department: tgUser?.department || null,
-        assigned_to: null,
+          title: voiceText.slice(0, 80),
+          description: voiceText,
 
-        submitted_by: fullName || username || telegramId,
-        submitted_name: fullName || username || telegramId,
+          type: parsed.type,
+          category: parsed.category,
+          status: "new",
+          priority: parsed.priority,
 
-        telegram_id: telegramId,
-        role,
-        source: "telegram",
+          department: tgUser?.department || null,
+          assigned_to: null,
 
-        is_anonymous: false,
-        voice_date: new Date().toISOString().slice(0, 10),
-      });
+          submitted_by: "Anonymous",
+          submitted_name: "Anonymous",
+
+          telegram_id: null,
+          role: null,
+          source: "telegram",
+
+          is_anonymous: true,
+          voice_date: new Date().toISOString().slice(0, 10),
+        });
 
       if (error) {
         await sendTelegramMessage(
@@ -792,7 +847,7 @@ Telegram ID: ${telegramId}
     Төрөл: ${escapeTelegramHtml(parsed.category)}
     Priority: ${escapeTelegramHtml(parsed.priority)}
 
-    Таны нэр хадгалагдахгүй.
+    Таны нэр хадгалагдсангүй.
     `
       );
 
@@ -800,74 +855,87 @@ Telegram ID: ${telegramId}
     }
 
    if (text.startsWith("/voice")) {
-  const parsed = parseTelegramVoice(text);
-  const voiceText = parsed.content;
+      const parsed = parseTelegramVoice(text);
+      const voiceText = parsed.content;
 
-  if (!voiceText) {
-    await sendTelegramMessage(
-      chatId,
-      `
-Employee Voice илгээх format:
+      if (!organizationId) {
+        await sendTelegramMessage(
+          chatId,
+          "Таны Telegram хэрэглэгчид байгууллага оноогоогүй байна. Admin хэрэглэгчид хандана уу."
+        );
 
-/voice санал medium Ажлын байрны гэрэлтүүлэг муу байна
-/voice гомдол high Ажлын цаг хэт урт байна
-/voice эрсдэл critical Галын хор байхгүй байна
-`
-    );
+        return NextResponse.json({ ok: true });
+      }
 
-    return NextResponse.json({ ok: true });
-  }
+      if (!voiceText) {
+        await sendTelegramMessage(
+          chatId,
+          `
+    <b>Employee Voice илгээх формат</b>
 
-  const { error } = await supabase.from("employee_voice").insert({
-    organization_id: await getDefaultOrgId(),
-
-    title: voiceText.slice(0, 80),
-    description: voiceText,
-
-    type: parsed.type,
-    category: parsed.category,
-    status: "new",
-    priority: parsed.priority,
-
-    department: tgUser?.department || null,
-    assigned_to: null,
-
-    submitted_by: fullName || username || telegramId,
-    submitted_name: fullName || username || telegramId,
-
-    telegram_id: telegramId,
-    role,
-    source: "telegram",
-
-    is_anonymous: false,
-    voice_date: new Date().toISOString().slice(0, 10),
-  });
-
-  if (error) {
-    await sendTelegramMessage(
-      chatId,
-      `Employee Voice хадгалахад алдаа гарлаа: ${escapeTelegramHtml(error.message)}`
-    );
-
-    return NextResponse.json({ ok: true });
-  }
-
-  await sendTelegramMessage(
-    chatId,
+    <code>/voice санал medium Ажлын байрны гэрэлтүүлэг муу байна</code>
+    <code>/voice гомдол high Ажлын цаг хэт урт байна</code>
+    <code>/voice эрсдэл critical Галын хор байхгүй байна</code>
     `
-✅ <b>Employee Voice бүртгэгдлээ</b>
+        );
 
-Төрөл: ${escapeTelegramHtml(parsed.category)}
-Priority: ${escapeTelegramHtml(parsed.priority)}
-Telegram ID: <code>${escapeTelegramHtml(telegramId)}</code>
+        return NextResponse.json({ ok: true });
+      }
 
-Текст:
-${escapeTelegramHtml(voiceText)}
-`
-  );
+      const { error } = await supabase
+        .from("employee_voice")
+        .insert({
+          organization_id: organizationId,
 
-  return NextResponse.json({ ok: true });
-}
+          title: voiceText.slice(0, 80),
+          description: voiceText,
+
+          type: parsed.type,
+          category: parsed.category,
+          status: "new",
+          priority: parsed.priority,
+
+          department: tgUser?.department || null,
+          assigned_to: null,
+
+          submitted_by: fullName || username || telegramId,
+          submitted_name: fullName || username || telegramId,
+
+          telegram_id: telegramId,
+          role,
+          source: "telegram",
+
+          is_anonymous: false,
+          voice_date: new Date().toISOString().slice(0, 10),
+        });
+
+      if (error) {
+        await sendTelegramMessage(
+          chatId,
+          `Employee Voice хадгалахад алдаа гарлаа: ${escapeTelegramHtml(
+            error.message
+          )}`
+        );
+
+        return NextResponse.json({ ok: true });
+      }
+
+      await sendTelegramMessage(
+        chatId,
+        `
+    ✅ <b>Employee Voice бүртгэгдлээ</b>
+
+    Төрөл: ${escapeTelegramHtml(parsed.category)}
+    Priority: ${escapeTelegramHtml(parsed.priority)}
+    Telegram ID: <code>${escapeTelegramHtml(telegramId)}</code>
+
+    Текст:
+    ${escapeTelegramHtml(voiceText)}
+    `
+      );
+
+      return NextResponse.json({ ok: true });
+    }
 
     if (text.startsWith("/")) {
       await sendTelegramMessage(
@@ -879,7 +947,22 @@ ${escapeTelegramHtml(voiceText)}
     }
 
     if (text) {
-      await answerWithAI(chatId, text, role);
+      if (!organizationId) {
+        await sendTelegramMessage(
+          chatId,
+          "Таны Telegram хэрэглэгчид байгууллага оноогоогүй байна."
+        );
+
+        return NextResponse.json({ ok: true });
+      }
+
+      await answerWithAI(
+        chatId,
+        text,
+        role,
+        organizationId
+      );
+
       return NextResponse.json({ ok: true });
     }
 

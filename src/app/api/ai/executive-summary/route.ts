@@ -3,6 +3,9 @@ import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
 import { getCurrentOrganization } from "@/lib/auth/getCurrentOrganization";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
@@ -12,48 +15,145 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const {
-  organization: org,
-  organizationId,
-} = await getCurrentOrganization();
-
 export async function GET() {
   try {
-    const [inspections, findings, compliance, research, voice] = await Promise.all([
-      supabase.from("inspections").select("*") .eq("organization_id", organizationId) .limit(100),
-      supabase.from("findings").select("*") .eq("organization_id", organizationId) .limit(100),
-      supabase.from("compliance_items").select("*") .eq("organization_id", organizationId) .limit(100),
-      supabase.from("research_projects").select("*") .eq("organization_id", organizationId) .limit(100),
-      supabase.from("employee_voice").select("*") .eq("organization_id", organizationId) .limit(100),
+    // Request scope дотор ажиллуулах ёстой
+    const {
+      user,
+      organization: org,
+      organizationId,
+    } = await getCurrentOrganization();
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+        },
+        { status: 401 }
+      );
+    }
+
+    if (!organizationId) {
+      return NextResponse.json(
+        {
+          error: "Таны хэрэглэгчид байгууллага оноогоогүй байна.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const [
+      inspectionsResult,
+      findingsResult,
+      complianceResult,
+      researchResult,
+      voiceResult,
+    ] = await Promise.all([
+      supabase
+        .from("inspections")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .limit(100),
+
+      supabase
+        .from("findings")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .limit(100),
+
+      supabase
+        .from("compliance_items")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .limit(100),
+
+      supabase
+        .from("research_projects")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .limit(100),
+
+      supabase
+        .from("employee_voice")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .limit(100),
     ]);
 
+    const queryErrors = [
+      inspectionsResult.error,
+      findingsResult.error,
+      complianceResult.error,
+      researchResult.error,
+      voiceResult.error,
+    ].filter(Boolean);
+
+    if (queryErrors.length > 0) {
+      console.error(
+        "EXECUTIVE SUMMARY DB ERROR:",
+        queryErrors.map((error) => error?.message)
+      );
+
+      return NextResponse.json(
+        {
+          error: queryErrors[0]?.message || "Өгөгдөл уншихад алдаа гарлаа.",
+        },
+        { status: 500 }
+      );
+    }
+
+    const inspections = inspectionsResult.data ?? [];
+    const findings = findingsResult.data ?? [];
+    const compliance = complianceResult.data ?? [];
+    const research = researchResult.data ?? [];
+    const voices = voiceResult.data ?? [];
+
+    const allDataEmpty =
+      inspections.length === 0 &&
+      findings.length === 0 &&
+      compliance.length === 0 &&
+      research.length === 0 &&
+      voices.length === 0;
+
+    if (allDataEmpty) {
+      return NextResponse.json({
+        summary: `${org?.name || "Тус байгууллага"}-ын удирдлагын товч дүгнэлт гаргахад шаардлагатай бүртгэл одоогоор байхгүй байна.`,
+        organizationId,
+        organizationName: org?.name ?? null,
+      });
+    }
+
     const prompt = `
-    Та INSPECT.MN дотоод хяналтын удирдлагын AI зөвлөх.
+Та INSPECT.MN дотоод хяналтын удирдлагын AI зөвлөх.
 
-    Дараах бодит DB өгөгдөл дээр үндэслэн Dashboard-ийн Удирдлагын товч мэдээлэл гарга.
+Байгууллага:
+${org?.name || "Тодорхойгүй"}
 
-    Inspection records:
-    ${JSON.stringify(inspections.data || [])}
+Дараах зөвхөн тухайн байгууллагын бодит DB өгөгдөл дээр үндэслэн Dashboard-ийн удирдлагын товч мэдээлэл гарга.
 
-    Findings:
-    ${JSON.stringify(findings.data || [])}
+Inspection records:
+${JSON.stringify(inspections)}
 
-    Compliance items:
-    ${JSON.stringify(compliance.data || [])}
+Findings:
+${JSON.stringify(findings)}
 
-    Research projects:
-    ${JSON.stringify(research.data || [])}
+Compliance items:
+${JSON.stringify(compliance)}
 
-    Employee Voice:
-    ${JSON.stringify(voice.data || [])}
+Research projects:
+${JSON.stringify(research)}
 
-    Шаардлага:
-    - Монгол хэлээр бич.
-    - "өгөгдөл байхгүй" гэж битгий хэл, зөвхөн үнэхээр хоосон үед хэл.
-    - Inspection, Compliance, Findings, Employee Voice, R&D мэдээллийг заавал тусга.
-    - 5-7 өгүүлбэртэй удирдлагын товч дүгнэлт гарга.
-    - Өндөр эрсдэл, нээлттэй зөрчил, compliance хэрэгжилт, employee voice саналын чиг хандлагыг дурд.
-    `;
+Employee Voice:
+${JSON.stringify(voices)}
+
+Шаардлага:
+- Монгол хэлээр бич.
+- Өгөгдөлд байхгүй тоо, үйл явдал зохиохгүй.
+- Inspection, Compliance, Findings, Employee Voice, R&D мэдээллийг тусга.
+- Тухайн модуль хоосон бол товч дурд.
+- 5–7 өгүүлбэртэй удирдлагын товч дүгнэлт гарга.
+- Өндөр эрсдэл, нээлттэй зөрчил, compliance хэрэгжилт болон employee voice чиг хандлагыг дурд.
+`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -61,7 +161,7 @@ export async function GET() {
         {
           role: "system",
           content:
-            "Та уул уурхайн компанийн дотоод хяналтын ахлах зөвлөх."
+            "Та уул уурхайн компанийн дотоод хяналтын ахлах зөвлөх. Зөвхөн өгсөн өгөгдөлд үндэслэн хариулна.",
         },
         {
           role: "user",
@@ -70,12 +170,27 @@ export async function GET() {
       ],
     });
 
+    const summary =
+      completion.choices[0]?.message?.content ||
+      "AI удирдлагын товч дүгнэлт үүсгэж чадсангүй.";
+
     return NextResponse.json({
-      summary: completion.choices[0].message.content,
+      summary,
+      organizationId,
+      organizationName: org?.name ?? null,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Executive summary үүсгэхэд алдаа гарлаа.";
+
+    console.error("EXECUTIVE SUMMARY ERROR:", message);
+
     return NextResponse.json(
-      { error: error.message },
+      {
+        error: message,
+      },
       { status: 500 }
     );
   }

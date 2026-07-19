@@ -213,7 +213,7 @@ export default function VoiceClient({ organizationId, items }: Props) {
           ))}
         </div>
 
-        <h2 className="mb-4 text-xl font-bold">Ажилны дуу хоолойн бүртгэл</h2>
+        <h2 className="mb-4 text-xl font-bold">Ажилтны дуу хоолойн бүртгэл</h2>
 
         <div className="max-h-[520px] overflow-auto rounded-xl border">
           <table className="w-full min-w-[1000px] text-sm">

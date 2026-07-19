@@ -48,9 +48,6 @@ export default function SettingsClient({
       id: user.id,
       email: user.email,
       full_name: fullName,
-      role,
-      department,
-      position,
       phone,
       language,
       theme,
@@ -131,23 +128,17 @@ export default function SettingsClient({
               disabled
             />
 
-            <select
-              className="rounded-xl border p-3"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="admin">Admin</option>
-              <option value="manager">Manager</option>
-              <option value="inspector">Inspector</option>
-              <option value="employee">Employee</option>
-              <option value="user">User</option>
-            </select>
+            <input
+    className="rounded-xl border bg-slate-100 p-3"
+    value={role}
+    disabled
+/>
 
             <input
-              className="rounded-xl border p-3"
+               className="rounded-xl border bg-slate-100 p-3"
               placeholder="Алба / хэлтэс"
               value={department}
-              onChange={(e) => setDepartment(e.target.value)}
+              disabled
             />
 
             <input

@@ -376,7 +376,7 @@ export default function InspectionDetailModal({
 
                 {findings.map((f) => (
                   <div key={f.id} className="rounded-xl border p-3">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
                       <div>
                         <div className="font-semibold">{f.title}</div>
 
@@ -404,7 +404,7 @@ export default function InspectionDetailModal({
                       <select
                         value={f.status || "open"}
                         onChange={(e) => updateFindingStatus(f.id, e.target.value)}
-                        className="rounded-lg border px-3 py-2 text-sm"
+                        className="flex-1 min-w-[150px]"
                       >
                         <option value="open">Нээлттэй</option>
                         <option value="planned">Арга хэмжээ төлөвлөсөн</option>
@@ -417,19 +417,37 @@ export default function InspectionDetailModal({
                       <button
                         type="button"
                         onClick={() => startEditFinding(f)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
+                        className="
+                          flex h-8 w-4 shrink-0 items-center justify-center
+                          rounded-lg
+                          
+                          text-blue-600
+                          transition
+                          hover:bg-blue-50
+                          dark:text-blue-400
+                          dark:hover:bg-blue-950
+                        "
                         title="Зөрчил засах"
                       >
-                        <Pencil size={15} />
+                        <Pencil className="h-4 w-4" />
                       </button>
 
                       <button
                         type="button"
                         onClick={() => deleteFinding(f.id)}
-                        className="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                        className="
+                          flex h-8 w-4 shrink-0 items-center justify-center
+                          rounded-lg
+                          
+                          text-red-600
+                          transition
+                          hover:bg-red-50
+                          dark:text-red-400
+                          dark:hover:bg-red-950
+                        "
                         title="Зөрчил устгах"
                       >
-                        Устгах
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
 

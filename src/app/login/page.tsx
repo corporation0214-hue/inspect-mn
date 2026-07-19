@@ -152,6 +152,15 @@ export default function LoginPage() {
                   </div>
                 </div>
 
+                <div className="flex justify-end">
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-cyan-400 transition hover:text-cyan-300 hover:underline"
+                  >
+                    Нууц үгээ мартсан уу?
+                  </Link>
+                </div>
+
                 {error && (
                   <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                     {error}
@@ -167,7 +176,7 @@ export default function LoginPage() {
                   {loading ? "Нэвтэрч байна..." : "Нэвтрэх"}
                 </button>
               </div>
-
+                
               <div className="mt-8 border-t border-white/10 pt-5">
                 <div className="flex items-center justify-center gap-2 text-sm text-slate-400">
                   <ShieldCheck size={16} />
